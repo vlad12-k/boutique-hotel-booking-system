@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-3">Add Room</h1>
+<form method="post" class="card card-body">
+  <div class="mb-3">
+    <label class="form-label">Room Number</label>
+    <input name="room_number" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Room Type</label>
+    <input name="room_type" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Price Per Night</label>
+    <input name="price_per_night" type="number" min="1" step="0.01" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Status</label>
+    <select name="status" class="form-select">
+      {% for status in room_statuses %}
+      <option value="{{ status }}">{{ status }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button class="btn btn-primary" type="submit">Save Room</button>
+</form>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-4">Dashboard</h1>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-2"><div class="card stat-card"><div class="card-body"><strong>Total Rooms</strong><div>{{ total_rooms }}</div></div></div></div>
+  <div class="col-md-2"><div class="card stat-card"><div class="card-body"><strong>Available</strong><div>{{ available_rooms }}</div></div></div></div>
+  <div class="col-md-2"><div class="card stat-card"><div class="card-body"><strong>Occupied</strong><div>{{ occupied_rooms }}</div></div></div></div>
+  <div class="col-md-2"><div class="card stat-card"><div class="card-body"><strong>Cleaning</strong><div>{{ cleaning_rooms }}</div></div></div></div>
+  <div class="col-md-2"><div class="card stat-card"><div class="card-body"><strong>Maintenance</strong><div>{{ maintenance_rooms }}</div></div></div></div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-4">
+    <h5>Today's Check-ins</h5>
+    <ul class="list-group">
+      {% for booking in todays_check_ins %}
+        <li class="list-group-item">#{{ booking.id }} - {{ booking.guest.full_name }} (Room {{ booking.room.room_number }})</li>
+      {% else %}
+        <li class="list-group-item text-muted">No check-ins today.</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="col-md-4">
+    <h5>Today's Check-outs</h5>
+    <ul class="list-group">
+      {% for booking in todays_check_outs %}
+        <li class="list-group-item">#{{ booking.id }} - {{ booking.guest.full_name }} (Room {{ booking.room.room_number }})</li>
+      {% else %}
+        <li class="list-group-item text-muted">No check-outs today.</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="col-md-4">
+    <h5>Recent Bookings</h5>
+    <ul class="list-group">
+      {% for booking in recent_bookings %}
+        <li class="list-group-item">#{{ booking.id }} - {{ booking.guest.full_name }} | {{ booking.status }}</li>
+      {% else %}
+        <li class="list-group-item text-muted">No bookings yet.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

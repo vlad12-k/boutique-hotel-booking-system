@@ -1,3 +1,5 @@
+import os
+import secrets
 from datetime import date, datetime
 
 from flask import Flask, flash, redirect, render_template, request, url_for
@@ -29,7 +31,7 @@ DEFAULT_ROOMS = [
 
 def create_app():
     app = Flask(__name__)
-    app.config["SECRET_KEY"] = "prototype-secret-key"
+    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY") or secrets.token_hex(32)
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///hotel.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -350,4 +352,4 @@ app = create_app()
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=os.getenv("FLASK_DEBUG", "0") == "1")

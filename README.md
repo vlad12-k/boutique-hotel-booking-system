@@ -25,6 +25,10 @@ python app.py
 ```
 Then open `http://127.0.0.1:5000` in your browser.
 
+Optional environment variables:
+- `SECRET_KEY` (recommended outside local prototype use so sessions stay stable)
+- `FLASK_DEBUG=1` (local development only)
+
 ## Implemented Features
 - Dashboard with room counts, today's check-ins/check-outs and recent bookings
 - Room management: list, add and update room status

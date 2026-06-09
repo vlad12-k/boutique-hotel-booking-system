@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1>Rooms</h1>
+  <a href="{{ url_for('add_room') }}" class="btn btn-primary">Add Room</a>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-bordered align-middle">
+    <thead>
+      <tr>
+        <th>Room Number</th>
+        <th>Type</th>
+        <th>Price/Night</th>
+        <th>Status</th>
+        <th>Update Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for room in rooms %}
+      <tr>
+        <td>{{ room.room_number }}</td>
+        <td>{{ room.room_type }}</td>
+        <td>£{{ "%.2f"|format(room.price_per_night) }}</td>
+        <td>{{ room.status }}</td>
+        <td>
+          <form method="post" action="{{ url_for('update_room_status', room_id=room.id) }}" class="d-flex gap-2">
+            <select name="status" class="form-select form-select-sm">
+              {% for status in room_statuses %}
+                <option value="{{ status }}" {% if status == room.status %}selected{% endif %}>{{ status }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-center text-muted">No rooms found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

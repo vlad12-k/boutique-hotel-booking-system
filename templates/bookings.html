@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1>Bookings</h1>
+  <a href="{{ url_for('add_booking') }}" class="btn btn-primary">Create Booking</a>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-bordered align-middle">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Guest</th>
+        <th>Room</th>
+        <th>Dates</th>
+        <th>Status</th>
+        <th>Total Price</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for booking in bookings %}
+      <tr>
+        <td>#{{ booking.id }}</td>
+        <td>{{ booking.guest.full_name }}</td>
+        <td>{{ booking.room.room_number }}</td>
+        <td>{{ booking.check_in_date }} → {{ booking.check_out_date }}</td>
+        <td>{{ booking.status }}</td>
+        <td>£{{ "%.2f"|format(booking.total_price) }}</td>
+        <td>
+          <div class="d-flex flex-wrap gap-2">
+            {% if booking.status not in ['Cancelled', 'Checked-out'] %}
+            <form method="post" action="{{ url_for('cancel_booking', booking_id=booking.id) }}">
+              <button class="btn btn-sm btn-outline-danger" type="submit">Cancel</button>
+            </form>
+            {% endif %}
+
+            {% if booking.status in ['Pending', 'Confirmed'] %}
+            <form method="post" action="{{ url_for('check_in_booking', booking_id=booking.id) }}">
+              <button class="btn btn-sm btn-outline-success" type="submit">Check-in</button>
+            </form>
+            {% endif %}
+
+            {% if booking.status == 'Checked-in' %}
+            <form method="post" action="{{ url_for('check_out_booking', booking_id=booking.id) }}">
+              <button class="btn btn-sm btn-outline-primary" type="submit">Check-out</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center text-muted">No bookings found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,5 +1,4 @@
 import os
-import secrets
 from datetime import date, datetime
 
 from flask import Flask, flash, redirect, render_template, request, url_for
@@ -31,7 +30,7 @@ DEFAULT_ROOMS = [
 
 def create_app():
     app = Flask(__name__)
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY") or secrets.token_hex(32)
+    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key-for-academic-prototype")
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///hotel.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -174,6 +173,10 @@ def register_routes(app):
 
             if not full_name or not email or not phone:
                 flash("Full name, email and phone are required.", "danger")
+                return render_template("add_guest.html")
+
+            if "@" not in email or "." not in email:
+                flash("Please enter a valid email address.", "danger")
                 return render_template("add_guest.html")
 
             db.session.add(Guest(full_name=full_name, email=email, phone=phone, notes=notes))

@@ -1,20 +1,58 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="mb-4">Dashboard</h1>
+<div class="mb-4">
+  <h1 class="mb-2">Dashboard</h1>
+  <p class="text-muted page-helper mb-0">Use this summary to quickly review room availability and the booking activity for today.</p>
+</div>
 
 <div class="row g-3 mb-4">
-  <div class="col-md-2"><div class="card stat-card"><div class="card-body"><strong>Total Rooms</strong><div>{{ total_rooms }}</div></div></div></div>
-  <div class="col-md-2"><div class="card stat-card"><div class="card-body"><strong>Available</strong><div>{{ available_rooms }}</div></div></div></div>
-  <div class="col-md-2"><div class="card stat-card"><div class="card-body"><strong>Occupied</strong><div>{{ occupied_rooms }}</div></div></div></div>
-  <div class="col-md-2"><div class="card stat-card"><div class="card-body"><strong>Cleaning</strong><div>{{ cleaning_rooms }}</div></div></div></div>
-  <div class="col-md-2"><div class="card stat-card"><div class="card-body"><strong>Maintenance</strong><div>{{ maintenance_rooms }}</div></div></div></div>
+  <div class="col-sm-6 col-lg">
+    <div class="card stat-card shadow-sm border-0">
+      <div class="card-body">
+        <p class="stat-label mb-2">Total Rooms</p>
+        <p class="stat-value mb-0">{{ total_rooms }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg">
+    <div class="card stat-card shadow-sm border-0">
+      <div class="card-body">
+        <p class="stat-label mb-2">Available Rooms</p>
+        <p class="stat-value mb-0">{{ available_rooms }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg">
+    <div class="card stat-card shadow-sm border-0">
+      <div class="card-body">
+        <p class="stat-label mb-2">Occupied Rooms</p>
+        <p class="stat-value mb-0">{{ occupied_rooms }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg">
+    <div class="card stat-card shadow-sm border-0">
+      <div class="card-body">
+        <p class="stat-label mb-2">Cleaning Queue</p>
+        <p class="stat-value mb-0">{{ cleaning_rooms }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg">
+    <div class="card stat-card shadow-sm border-0">
+      <div class="card-body">
+        <p class="stat-label mb-2">Maintenance</p>
+        <p class="stat-value mb-0">{{ maintenance_rooms }}</p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="row g-4">
   <div class="col-md-4">
-    <h5>Today's Check-ins</h5>
-    <ul class="list-group">
+    <h5 class="mb-3">Today's Check-ins</h5>
+    <ul class="list-group shadow-sm">
       {% for booking in todays_check_ins %}
         <li class="list-group-item">#{{ booking.id }} - {{ booking.guest.full_name }} (Room {{ booking.room.room_number }})</li>
       {% else %}
@@ -23,8 +61,8 @@
     </ul>
   </div>
   <div class="col-md-4">
-    <h5>Today's Check-outs</h5>
-    <ul class="list-group">
+    <h5 class="mb-3">Today's Check-outs</h5>
+    <ul class="list-group shadow-sm">
       {% for booking in todays_check_outs %}
         <li class="list-group-item">#{{ booking.id }} - {{ booking.guest.full_name }} (Room {{ booking.room.room_number }})</li>
       {% else %}
@@ -33,10 +71,10 @@
     </ul>
   </div>
   <div class="col-md-4">
-    <h5>Recent Bookings</h5>
-    <ul class="list-group">
+    <h5 class="mb-3">Recent Bookings</h5>
+    <ul class="list-group shadow-sm">
       {% for booking in recent_bookings %}
-        <li class="list-group-item">#{{ booking.id }} - {{ booking.guest.full_name }} | {{ booking.status }}</li>
+        <li class="list-group-item">#{{ booking.id }} - {{ booking.guest.full_name }} | <span class="fw-semibold">{{ booking.status }}</span></li>
       {% else %}
         <li class="list-group-item text-muted">No bookings yet.</li>
       {% endfor %}

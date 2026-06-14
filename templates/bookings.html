@@ -6,8 +6,28 @@
   <a href="{{ url_for('add_booking') }}" class="btn btn-primary">Create Booking</a>
 </div>
 
+<p class="text-muted page-helper">Track booking progress and quickly filter by status to support front desk and housekeeping workflows.</p>
+
+<div class="card card-body mb-3 shadow-sm">
+  <div class="row g-2 align-items-center">
+    <div class="col-sm-4 col-md-3">
+      <label for="bookingStatusFilter" class="form-label mb-0 fw-semibold">Filter by status</label>
+    </div>
+    <div class="col-sm-8 col-md-4">
+      <select id="bookingStatusFilter" class="form-select">
+        <option value="all">All</option>
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="checked-in">Checked-in</option>
+        <option value="checked-out">Checked-out</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+  </div>
+</div>
+
 <div class="table-responsive">
-  <table class="table table-bordered align-middle">
+  <table class="table table-bordered table-hover align-middle staff-table">
     <thead>
       <tr>
         <th>ID</th>
@@ -21,17 +41,29 @@
     </thead>
     <tbody>
       {% for booking in bookings %}
-      <tr>
+      <tr data-status="{{ booking.status|lower }}">
         <td>#{{ booking.id }}</td>
         <td>{{ booking.guest.full_name }}</td>
         <td>{{ booking.room.room_number }}</td>
         <td>{{ booking.check_in_date }} → {{ booking.check_out_date }}</td>
-        <td>{{ booking.status }}</td>
+        <td>
+          {% if booking.status == "Pending" %}
+            <span class="badge rounded-pill status-badge bg-warning-subtle text-warning-emphasis">{{ booking.status }}</span>
+          {% elif booking.status == "Confirmed" %}
+            <span class="badge rounded-pill status-badge bg-primary-subtle text-primary-emphasis">{{ booking.status }}</span>
+          {% elif booking.status == "Checked-in" %}
+            <span class="badge rounded-pill status-badge bg-success-subtle text-success-emphasis">{{ booking.status }}</span>
+          {% elif booking.status == "Checked-out" %}
+            <span class="badge rounded-pill status-badge bg-info-subtle text-info-emphasis">{{ booking.status }}</span>
+          {% else %}
+            <span class="badge rounded-pill status-badge bg-secondary-subtle text-secondary-emphasis">{{ booking.status }}</span>
+          {% endif %}
+        </td>
         <td>£{{ "%.2f"|format(booking.total_price) }}</td>
         <td>
           <div class="d-flex flex-wrap gap-2">
             {% if booking.status not in ['Cancelled', 'Checked-out'] %}
-            <form method="post" action="{{ url_for('cancel_booking', booking_id=booking.id) }}">
+            <form method="post" action="{{ url_for('cancel_booking', booking_id=booking.id) }}" class="js-cancel-booking-form">
               <button class="btn btn-sm btn-outline-danger" type="submit">Cancel</button>
             </form>
             {% endif %}

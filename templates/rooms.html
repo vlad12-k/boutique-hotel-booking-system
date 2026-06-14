@@ -6,8 +6,27 @@
   <a href="{{ url_for('add_room') }}" class="btn btn-primary">Add Room</a>
 </div>
 
+<p class="text-muted page-helper">Review room readiness and use the filter to focus on one status without reloading the page.</p>
+
+<div class="card card-body mb-3 shadow-sm">
+  <div class="row g-2 align-items-center">
+    <div class="col-sm-4 col-md-3">
+      <label for="roomStatusFilter" class="form-label mb-0 fw-semibold">Filter by status</label>
+    </div>
+    <div class="col-sm-8 col-md-4">
+      <select id="roomStatusFilter" class="form-select">
+        <option value="all">All</option>
+        <option value="available">Available</option>
+        <option value="occupied">Occupied</option>
+        <option value="cleaning">Cleaning</option>
+        <option value="maintenance">Maintenance</option>
+      </select>
+    </div>
+  </div>
+</div>
+
 <div class="table-responsive">
-  <table class="table table-bordered align-middle">
+  <table class="table table-bordered table-hover align-middle staff-table">
     <thead>
       <tr>
         <th>Room Number</th>
@@ -19,11 +38,21 @@
     </thead>
     <tbody>
       {% for room in rooms %}
-      <tr>
+      <tr data-status="{{ room.status|lower }}">
         <td>{{ room.room_number }}</td>
         <td>{{ room.room_type }}</td>
         <td>£{{ "%.2f"|format(room.price_per_night) }}</td>
-        <td>{{ room.status }}</td>
+        <td>
+          {% if room.status == "Available" %}
+            <span class="badge rounded-pill status-badge bg-success-subtle text-success-emphasis">{{ room.status }}</span>
+          {% elif room.status == "Occupied" %}
+            <span class="badge rounded-pill status-badge bg-danger-subtle text-danger-emphasis">{{ room.status }}</span>
+          {% elif room.status == "Cleaning" %}
+            <span class="badge rounded-pill status-badge bg-warning-subtle text-warning-emphasis">{{ room.status }}</span>
+          {% else %}
+            <span class="badge rounded-pill status-badge bg-secondary-subtle text-secondary-emphasis">{{ room.status }}</span>
+          {% endif %}
+        </td>
         <td>
           <form method="post" action="{{ url_for('update_room_status', room_id=room.id) }}" class="d-flex gap-2">
             <select name="status" class="form-select form-select-sm">

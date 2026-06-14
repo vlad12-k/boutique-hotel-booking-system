@@ -10,6 +10,7 @@ This project is an academic prototype for Unit 36: Application Development. It p
 - SQLite
 - Jinja2 templates
 - Bootstrap
+- Vanilla JavaScript (client-side validation, filtering and interaction)
 
 ## Setup Instructions
 1. Clone the repository.
@@ -40,6 +41,7 @@ Optional environment variables:
 
 ## Academic Note
 This is an academic MVP prototype for a small 10-room boutique hotel and is designed to be simple, understandable and easy to demonstrate in coursework.
+Vanilla JavaScript is used for client-side validation, filtering and user interaction, while Flask handles backend logic and database persistence.
 
 ## Future Improvements
 - Role-based login and permissions

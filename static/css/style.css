@@ -4,4 +4,42 @@ body {
 
 .stat-card {
   min-height: 100%;
+  border-left: 4px solid #0d6efd;
+}
+
+.stat-label {
+  color: #6c757d;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.page-helper {
+  max-width: 68ch;
+}
+
+.status-badge {
+  min-width: 7.5rem;
+  padding: 0.45rem 0.7rem;
+  font-weight: 600;
+}
+
+.staff-table th {
+  background-color: #f1f3f5;
+  white-space: nowrap;
+}
+
+.staff-table td,
+.staff-table th {
+  padding: 0.8rem 0.75rem;
+}
+
+.staff-table tbody tr:hover {
+  background-color: #f8f9ff;
 }

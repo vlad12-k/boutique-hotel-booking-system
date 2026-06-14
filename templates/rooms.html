@@ -1,21 +1,28 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h1>Rooms</h1>
+<section class="page-heading mb-4">
+  <div>
+    <p class="eyebrow mb-2">Room readiness</p>
+    <h1 class="mb-2">Rooms</h1>
+    <p class="text-muted page-helper mb-0">
+      Monitor room availability, housekeeping readiness and maintenance status without reloading the page.
+    </p>
+  </div>
   <a href="{{ url_for('add_room') }}" class="btn btn-primary">Add Room</a>
-</div>
+</section>
 
-<p class="text-muted page-helper">Review room readiness and use the filter to focus on one status without reloading the page.</p>
-
-<div class="card card-body mb-3 shadow-sm">
-  <div class="row g-2 align-items-center">
-    <div class="col-sm-4 col-md-3">
-      <label for="roomStatusFilter" class="form-label mb-0 fw-semibold">Filter by status</label>
+<div class="card card-body mb-3 shadow-sm filter-panel">
+  <div class="row g-3 align-items-center">
+    <div class="col-md-6">
+      <div class="section-kicker mb-1">Housekeeping control</div>
+      <h2 class="h5 mb-1">Room status filter</h2>
+      <p class="text-muted mb-0 small">Focus on available, occupied, cleaning or maintenance rooms.</p>
     </div>
-    <div class="col-sm-8 col-md-4">
+    <div class="col-md-6 col-lg-4 ms-md-auto">
+      <label for="roomStatusFilter" class="form-label fw-semibold">Filter by status</label>
       <select id="roomStatusFilter" class="form-select">
-        <option value="all">All</option>
+        <option value="all">All rooms</option>
         <option value="available">Available</option>
         <option value="occupied">Occupied</option>
         <option value="cleaning">Cleaning</option>
@@ -25,11 +32,15 @@
   </div>
 </div>
 
+<div id="roomFilterEmptyMessage" class="alert alert-info d-none" role="status" aria-live="polite">
+  No rooms match the selected status filter.
+</div>
+
 <div class="table-responsive">
-  <table class="table table-bordered table-hover align-middle staff-table">
+  <table class="table table-hover align-middle staff-table">
     <thead>
       <tr>
-        <th>Room Number</th>
+        <th>Room</th>
         <th>Type</th>
         <th>Price/Night</th>
         <th>Status</th>
@@ -39,9 +50,12 @@
     <tbody>
       {% for room in rooms %}
       <tr data-status="{{ room.status|lower }}">
-        <td>{{ room.room_number }}</td>
+        <td>
+          <div class="fw-semibold">Room {{ room.room_number }}</div>
+          <div class="small text-muted">Room record #{{ room.id }}</div>
+        </td>
         <td>{{ room.room_type }}</td>
-        <td>£{{ "%.2f"|format(room.price_per_night) }}</td>
+        <td class="fw-semibold">£{{ "%.2f"|format(room.price_per_night) }}</td>
         <td>
           {% if room.status == "Available" %}
             <span class="badge rounded-pill status-badge bg-success-subtle text-success-emphasis">{{ room.status }}</span>
@@ -54,8 +68,8 @@
           {% endif %}
         </td>
         <td>
-          <form method="post" action="{{ url_for('update_room_status', room_id=room.id) }}" class="d-flex gap-2">
-            <select name="status" class="form-select form-select-sm">
+          <form method="post" action="{{ url_for('update_room_status', room_id=room.id) }}" class="status-update-form">
+            <select name="status" class="form-select form-select-sm" aria-label="Update status for room {{ room.room_number }}">
               {% for status in room_statuses %}
                 <option value="{{ status }}" {% if status == room.status %}selected{% endif %}>{{ status }}</option>
               {% endfor %}
@@ -65,7 +79,16 @@
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="5" class="text-center text-muted">No rooms found.</td></tr>
+      <tr>
+        <td colspan="5" class="text-center text-muted py-5">
+          <div class="empty-state mx-auto">
+            <div class="empty-state-icon" aria-hidden="true">◇</div>
+            <h2 class="h5 mb-2">No rooms found</h2>
+            <p class="mb-3">Add a room to start managing availability and bookings.</p>
+            <a href="{{ url_for('add_room') }}" class="btn btn-primary btn-sm">Add Room</a>
+          </div>
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>

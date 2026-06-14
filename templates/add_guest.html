@@ -1,24 +1,89 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="mb-3">Add Guest</h1>
-<form method="post" class="card card-body">
-  <div class="mb-3">
-    <label class="form-label">Full Name</label>
-    <input name="full_name" class="form-control" required>
+<section class="page-heading mb-4">
+  <div>
+    <p class="eyebrow mb-2">Guest management</p>
+    <h1 class="mb-2">Add Guest</h1>
+    <p class="text-muted page-helper mb-0">
+      Create a guest record before assigning a room booking. Keep contact details accurate so reception can manage reservations reliably.
+    </p>
   </div>
-  <div class="mb-3">
-    <label class="form-label">Email</label>
-    <input name="email" type="email" class="form-control" required>
+  <a href="{{ url_for('guests') }}" class="btn btn-outline-primary">Back to Guests</a>
+</section>
+
+<div class="row g-4 align-items-start">
+  <div class="col-lg-8">
+    <form method="post" class="card card-body shadow-sm form-panel">
+      <div class="section-kicker mb-3">Guest details</div>
+
+      <div class="mb-3">
+        <label for="guestFullName" class="form-label">Full Name</label>
+        <input
+          id="guestFullName"
+          name="full_name"
+          class="form-control"
+          placeholder="Example: Amelia Stone"
+          autocomplete="name"
+          required
+        >
+      </div>
+
+      <div class="mb-3">
+        <label for="guestEmail" class="form-label">Email</label>
+        <input
+          id="guestEmail"
+          name="email"
+          type="email"
+          class="form-control"
+          placeholder="guest@example.com"
+          autocomplete="email"
+          required
+        >
+        <div class="form-text">Used for booking communication and guest record accuracy.</div>
+      </div>
+
+      <div class="mb-3">
+        <label for="guestPhone" class="form-label">Phone</label>
+        <input
+          id="guestPhone"
+          name="phone"
+          class="form-control"
+          placeholder="+44 7000 000000"
+          autocomplete="tel"
+          required
+        >
+      </div>
+
+      <div class="mb-4">
+        <label for="guestNotes" class="form-label">Notes</label>
+        <textarea
+          id="guestNotes"
+          name="notes"
+          class="form-control"
+          rows="4"
+          placeholder="Optional notes, accessibility needs or booking preferences"
+        ></textarea>
+      </div>
+
+      <div class="d-flex flex-column flex-sm-row gap-2">
+        <button class="btn btn-primary" type="submit">Save Guest</button>
+        <a href="{{ url_for('guests') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
   </div>
-  <div class="mb-3">
-    <label class="form-label">Phone</label>
-    <input name="phone" class="form-control" required>
+
+  <div class="col-lg-4">
+    <aside class="card card-body shadow-sm support-panel">
+      <div class="section-kicker mb-3">Staff guidance</div>
+      <h2 class="h5 mb-3">Before saving</h2>
+      <ul class="support-list mb-0">
+        <li>Check that the guest name is spelled correctly.</li>
+        <li>Use a valid email address with an @ symbol and domain.</li>
+        <li>Record a phone number staff can use for booking questions.</li>
+        <li>Keep notes short and relevant to hotel operations.</li>
+      </ul>
+    </aside>
   </div>
-  <div class="mb-3">
-    <label class="form-label">Notes</label>
-    <textarea name="notes" class="form-control"></textarea>
-  </div>
-  <button class="btn btn-primary" type="submit">Save Guest</button>
-</form>
+</div>
 {% endblock %}

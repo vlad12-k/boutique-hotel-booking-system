@@ -1,28 +1,91 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="mb-3">Add Room</h1>
-<form method="post" class="card card-body">
-  <div class="mb-3">
-    <label class="form-label">Room Number</label>
-    <input name="room_number" class="form-control" required>
+<section class="page-heading mb-4">
+  <div>
+    <p class="eyebrow mb-2">Room inventory</p>
+    <h1 class="mb-2">Add Room</h1>
+    <p class="text-muted page-helper mb-0">
+      Add a new hotel room to the internal inventory. Room records are used for availability, booking validation and operational status tracking.
+    </p>
   </div>
-  <div class="mb-3">
-    <label class="form-label">Room Type</label>
-    <input name="room_type" class="form-control" required>
+  <a href="{{ url_for('rooms') }}" class="btn btn-outline-primary">Back to Rooms</a>
+</section>
+
+<div class="row g-4 align-items-start">
+  <div class="col-lg-8">
+    <form method="post" class="card card-body shadow-sm form-panel">
+      <div class="section-kicker mb-3">Room details</div>
+
+      <div class="mb-3">
+        <label for="roomNumber" class="form-label">Room Number</label>
+        <input
+          id="roomNumber"
+          name="room_number"
+          class="form-control"
+          placeholder="Example: 111"
+          required
+        >
+        <div class="form-text">Use a unique room number so staff can identify the room quickly.</div>
+      </div>
+
+      <div class="mb-3">
+        <label for="roomType" class="form-label">Room Type</label>
+        <input
+          id="roomType"
+          name="room_type"
+          class="form-control"
+          placeholder="Example: Deluxe Double"
+          required
+        >
+      </div>
+
+      <div class="mb-3">
+        <label for="pricePerNight" class="form-label">Price Per Night</label>
+        <div class="input-group">
+          <span class="input-group-text">£</span>
+          <input
+            id="pricePerNight"
+            name="price_per_night"
+            type="number"
+            min="1"
+            step="0.01"
+            class="form-control"
+            placeholder="120.00"
+            required
+          >
+        </div>
+        <div class="form-text">This value is used to calculate the total booking price.</div>
+      </div>
+
+      <div class="mb-4">
+        <label for="roomStatus" class="form-label">Initial Status</label>
+        <select id="roomStatus" name="status" class="form-select">
+          {% for status in room_statuses %}
+          <option value="{{ status }}" {% if status == 'Available' %}selected{% endif %}>{{ status }}</option>
+          {% endfor %}
+        </select>
+        <div class="form-text">Most new rooms should start as Available unless they require cleaning or maintenance.</div>
+      </div>
+
+      <div class="d-flex flex-column flex-sm-row gap-2">
+        <button class="btn btn-primary" type="submit">Save Room</button>
+        <a href="{{ url_for('rooms') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
   </div>
-  <div class="mb-3">
-    <label class="form-label">Price Per Night</label>
-    <input name="price_per_night" type="number" min="1" step="0.01" class="form-control" required>
+
+  <div class="col-lg-4">
+    <aside class="card card-body shadow-sm support-panel">
+      <div class="section-kicker mb-3">Operational guidance</div>
+      <h2 class="h5 mb-3">Room status meaning</h2>
+      <ul class="support-list mb-0">
+        <li><strong>Available:</strong> ready for a guest booking.</li>
+        <li><strong>Occupied:</strong> currently used by a checked-in guest.</li>
+        <li><strong>Cleaning:</strong> requires housekeeping before reuse.</li>
+        <li><strong>Maintenance:</strong> unavailable for new bookings.</li>
+      </ul>
+    </aside>
   </div>
-  <div class="mb-3">
-    <label class="form-label">Status</label>
-    <select name="status" class="form-select">
-      {% for status in room_statuses %}
-      <option value="{{ status }}">{{ status }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <button class="btn btn-primary" type="submit">Save Room</button>
-</form>
+</div>
 {% endblock %}

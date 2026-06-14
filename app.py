@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import date, datetime
 
 from flask import Flask, flash, redirect, render_template, request, url_for
@@ -26,6 +27,21 @@ DEFAULT_ROOMS = [
     ("109", "Suite", 180.0),
     ("110", "Suite", 180.0),
 ]
+
+EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def is_valid_email(email):
+    return bool(EMAIL_PATTERN.match(email))
+
+
+def render_add_booking_form(guests_list, rooms_list):
+    return render_template(
+        "add_booking.html",
+        guests=guests_list,
+        rooms=rooms_list,
+        booking_statuses=BOOKING_STATUSES,
+    )
 
 
 def create_app():
@@ -175,8 +191,14 @@ def register_routes(app):
                 flash("Full name, email and phone are required.", "danger")
                 return render_template("add_guest.html")
 
-            if "@" not in email or "." not in email:
+            email = email.lower()
+
+            if not is_valid_email(email):
                 flash("Please enter a valid email address.", "danger")
+                return render_template("add_guest.html")
+
+            if Guest.query.filter(Guest.email.ilike(email)).first():
+                flash("A guest with this email address already exists.", "danger")
                 return render_template("add_guest.html")
 
             db.session.add(Guest(full_name=full_name, email=email, phone=phone, notes=notes))
@@ -205,63 +227,33 @@ def register_routes(app):
 
             if not guest_id or not room_id or not check_in_date or not check_out_date:
                 flash("Guest, room, check-in date and check-out date are required.", "danger")
-                return render_template(
-                    "add_booking.html",
-                    guests=guests_list,
-                    rooms=rooms_list,
-                    booking_statuses=BOOKING_STATUSES,
-                )
+                return render_add_booking_form(guests_list, rooms_list)
 
             if check_out_date <= check_in_date:
                 flash("Check-out date must be after check-in date.", "danger")
-                return render_template(
-                    "add_booking.html",
-                    guests=guests_list,
-                    rooms=rooms_list,
-                    booking_statuses=BOOKING_STATUSES,
-                )
+                return render_add_booking_form(guests_list, rooms_list)
 
             if booking_status not in ["Pending", "Confirmed"]:
                 flash("New bookings can only be Pending or Confirmed.", "danger")
-                return render_template(
-                    "add_booking.html",
-                    guests=guests_list,
-                    rooms=rooms_list,
-                    booking_statuses=BOOKING_STATUSES,
-                )
+                return render_add_booking_form(guests_list, rooms_list)
 
             try:
                 guest_id = int(guest_id)
                 room_id = int(room_id)
             except ValueError:
                 flash("Please select a valid guest and room.", "danger")
-                return render_template(
-                    "add_booking.html",
-                    guests=guests_list,
-                    rooms=rooms_list,
-                    booking_statuses=BOOKING_STATUSES,
-                )
+                return render_add_booking_form(guests_list, rooms_list)
 
             selected_room = db.session.get(Room, room_id)
             selected_guest = db.session.get(Guest, guest_id)
 
             if not selected_room or not selected_guest:
                 flash("Please select a valid guest and room.", "danger")
-                return render_template(
-                    "add_booking.html",
-                    guests=guests_list,
-                    rooms=rooms_list,
-                    booking_statuses=BOOKING_STATUSES,
-                )
+                return render_add_booking_form(guests_list, rooms_list)
 
             if selected_room.status == "Maintenance":
                 flash("Rooms under Maintenance cannot be booked.", "danger")
-                return render_template(
-                    "add_booking.html",
-                    guests=guests_list,
-                    rooms=rooms_list,
-                    booking_statuses=BOOKING_STATUSES,
-                )
+                return render_add_booking_form(guests_list, rooms_list)
 
             overlapping_booking = Booking.query.filter(
                 Booking.room_id == selected_room.id,
@@ -275,12 +267,7 @@ def register_routes(app):
                     "Booking rejected: the selected room already has an active booking for overlapping dates.",
                     "danger",
                 )
-                return render_template(
-                    "add_booking.html",
-                    guests=guests_list,
-                    rooms=rooms_list,
-                    booking_statuses=BOOKING_STATUSES,
-                )
+                return render_add_booking_form(guests_list, rooms_list)
 
             total_nights = (check_out_date - check_in_date).days
             total_price = total_nights * selected_room.price_per_night
@@ -299,12 +286,7 @@ def register_routes(app):
             flash("Booking created successfully.", "success")
             return redirect(url_for("bookings"))
 
-        return render_template(
-            "add_booking.html",
-            guests=guests_list,
-            rooms=rooms_list,
-            booking_statuses=BOOKING_STATUSES,
-        )
+        return render_add_booking_form(guests_list, rooms_list)
 
     @app.post("/bookings/<int:booking_id>/cancel")
     def cancel_booking(booking_id):

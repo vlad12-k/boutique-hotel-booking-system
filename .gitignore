@@ -12,8 +12,12 @@ env/
 
 # Flask / local environment
 .env
+.env.*
+!.env.example
 instance/
 *.db
+*.sqlite
+*.sqlite3
 
 # Testing / cache
 .pytest_cache/
@@ -26,3 +30,7 @@ htmlcov/
 # IDE
 .vscode/
 .idea/
+
+# Local project snapshots / temporary review files
+project_snapshot.txt
+*_snapshot.txt

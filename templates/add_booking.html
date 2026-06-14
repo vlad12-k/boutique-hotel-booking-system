@@ -1,52 +1,90 @@
+
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="mb-3">Create Booking</h1>
-<p class="text-muted page-helper">Complete all booking fields and check dates carefully before submitting.</p>
-<form method="post" class="card card-body shadow-sm" id="addBookingForm" novalidate>
-  <div class="mb-3">
-    <label class="form-label">Guest</label>
-    <select name="guest_id" class="form-select" required>
-      <option value="">Select Guest</option>
-      {% for guest in guests %}
-      <option value="{{ guest.id }}">{{ guest.full_name }} ({{ guest.email }})</option>
-      {% endfor %}
-    </select>
+<section class="page-heading mb-4">
+  <div>
+    <p class="eyebrow mb-2">Booking workflow</p>
+    <h1 class="mb-2">Create Booking</h1>
+    <p class="text-muted page-helper mb-0">
+      Reserve a room for an existing guest. The system checks date validity, room maintenance status and overlapping active bookings before saving.
+    </p>
+  </div>
+  <a href="{{ url_for('bookings') }}" class="btn btn-outline-primary">Back to Bookings</a>
+</section>
+
+<div class="row g-4 align-items-start">
+  <div class="col-lg-8">
+    <form method="post" class="card card-body shadow-sm form-panel" id="addBookingForm" novalidate>
+      <div class="section-kicker mb-3">Booking details</div>
+
+      <div class="mb-3">
+        <label for="guestSelect" class="form-label">Guest</label>
+        <select name="guest_id" id="guestSelect" class="form-select" required>
+          <option value="">Select Guest</option>
+          {% for guest in guests %}
+          <option value="{{ guest.id }}">{{ guest.full_name }} ({{ guest.email }})</option>
+          {% endfor %}
+        </select>
+        <div class="form-text">Create the guest record first if the guest is not listed.</div>
+      </div>
+
+      <div class="mb-3">
+        <label for="roomSelect" class="form-label">Room</label>
+        <select name="room_id" id="roomSelect" class="form-select" required>
+          <option value="">Select Room</option>
+          {% for room in rooms %}
+          <option value="{{ room.id }}">
+            Room {{ room.room_number }} — {{ room.room_type }} (£{{ "%.2f"|format(room.price_per_night) }}) [{{ room.status }}]
+          </option>
+          {% endfor %}
+        </select>
+        <div class="form-text">Rooms marked as Maintenance should not be assigned to new bookings.</div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="checkInDate" class="form-label">Check-in Date</label>
+          <input type="date" name="check_in_date" id="checkInDate" class="form-control" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="checkOutDate" class="form-label">Check-out Date</label>
+          <input type="date" name="check_out_date" id="checkOutDate" class="form-control" required>
+        </div>
+      </div>
+
+      <div id="bookingDateValidationMessage" class="alert alert-danger d-none mb-3" role="alert"></div>
+
+      <div class="mb-4">
+        <label for="bookingStatusSelect" class="form-label">Initial Booking Status</label>
+        <select name="status" id="bookingStatusSelect" class="form-select">
+          {% for status in booking_statuses %}
+          {% if status in ['Pending', 'Confirmed'] %}
+          <option value="{{ status }}" {% if status == 'Confirmed' %}selected{% endif %}>{{ status }}</option>
+          {% endif %}
+          {% endfor %}
+        </select>
+        <div class="form-text">Most staff-created bookings should start as Confirmed unless they still require approval.</div>
+      </div>
+
+      <div class="d-flex flex-column flex-sm-row gap-2">
+        <button class="btn btn-primary" type="submit">Create Booking</button>
+        <a href="{{ url_for('bookings') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
   </div>
 
-  <div class="mb-3">
-    <label class="form-label">Room</label>
-    <select name="room_id" class="form-select" required>
-      <option value="">Select Room</option>
-      {% for room in rooms %}
-      <option value="{{ room.id }}">Room {{ room.room_number }} - {{ room.room_type }} (£{{ "%.2f"|format(room.price_per_night) }}) [{{ room.status }}]</option>
-      {% endfor %}
-    </select>
+  <div class="col-lg-4">
+    <aside class="card card-body shadow-sm support-panel">
+      <div class="section-kicker mb-3">Validation rules</div>
+      <h2 class="h5 mb-3">Before the booking is saved</h2>
+      <ul class="support-list mb-0">
+        <li>Check-out date must be after check-in date.</li>
+        <li>The selected room must not be under Maintenance.</li>
+        <li>The selected room must not have an overlapping active booking.</li>
+        <li>Required guest, room and date fields must be completed.</li>
+      </ul>
+    </aside>
   </div>
-
-  <div class="row">
-    <div class="col-md-6 mb-3">
-      <label class="form-label">Check-in Date</label>
-      <input type="date" name="check_in_date" id="checkInDate" class="form-control" required>
-    </div>
-    <div class="col-md-6 mb-3">
-      <label class="form-label">Check-out Date</label>
-      <input type="date" name="check_out_date" id="checkOutDate" class="form-control" required>
-    </div>
-  </div>
-  <div id="bookingDateValidationMessage" class="alert alert-danger d-none mb-3" role="alert"></div>
-
-  <div class="mb-3">
-    <label class="form-label">Initial Booking Status</label>
-    <select name="status" class="form-select">
-      {% for status in booking_statuses %}
-      {% if status in ['Pending', 'Confirmed'] %}
-      <option value="{{ status }}" {% if status == 'Confirmed' %}selected{% endif %}>{{ status }}</option>
-      {% endif %}
-      {% endfor %}
-    </select>
-  </div>
-
-  <button class="btn btn-primary" type="submit">Create Booking</button>
-</form>
+</div>
 {% endblock %}

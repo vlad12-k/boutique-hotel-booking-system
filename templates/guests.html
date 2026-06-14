@@ -1,13 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h1>Guests</h1>
+<section class="page-heading mb-4">
+  <div>
+    <p class="eyebrow mb-2">Guest records</p>
+    <h1 class="mb-2">Guests</h1>
+    <p class="text-muted page-helper mb-0">
+      Manage guest contact details used by reception staff when creating reservations and supporting daily hotel operations.
+    </p>
+  </div>
   <a href="{{ url_for('add_guest') }}" class="btn btn-primary">Add Guest</a>
-</div>
+</section>
 
 <div class="table-responsive">
-  <table class="table table-bordered align-middle">
+  <table class="table table-hover align-middle staff-table">
     <thead>
       <tr>
         <th>Name</th>
@@ -19,13 +25,33 @@
     <tbody>
       {% for guest in guests %}
       <tr>
-        <td>{{ guest.full_name }}</td>
-        <td>{{ guest.email }}</td>
+        <td>
+          <div class="fw-semibold">{{ guest.full_name }}</div>
+          <div class="small text-muted">Guest record #{{ guest.id }}</div>
+        </td>
+        <td>
+          <a href="mailto:{{ guest.email }}" class="text-decoration-none fw-semibold">{{ guest.email }}</a>
+        </td>
         <td>{{ guest.phone }}</td>
-        <td>{{ guest.notes or '-' }}</td>
+        <td>
+          {% if guest.notes %}
+            <span class="text-muted">{{ guest.notes }}</span>
+          {% else %}
+            <span class="text-muted">No notes added</span>
+          {% endif %}
+        </td>
       </tr>
       {% else %}
-      <tr><td colspan="4" class="text-center text-muted">No guests found.</td></tr>
+      <tr>
+        <td colspan="4" class="text-center text-muted py-5">
+          <div class="empty-state mx-auto">
+            <div class="empty-state-icon" aria-hidden="true">◇</div>
+            <h2 class="h5 mb-2">No guests yet</h2>
+            <p class="mb-3">Add a guest record before creating a room booking.</p>
+            <a href="{{ url_for('add_guest') }}" class="btn btn-primary btn-sm">Add Guest</a>
+          </div>
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>

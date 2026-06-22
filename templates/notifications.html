@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Housekeeping Notification Log</h1>
+
+    <p class="text-muted">
+        This page shows API-based housekeeping notification attempts after guest check-out.
+    </p>
+
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Room</th>
+                <th>Booking</th>
+                <th>Channel</th>
+                <th>Status</th>
+                <th>Error</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.created_at }}</td>
+                <td>
+                    {% if log.room %}
+                        {{ log.room.number if log.room.number is defined else log.room.room_number }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ log.booking_id or "-" }}</td>
+                <td>{{ log.channel }}</td>
+                <td>{{ log.status }}</td>
+                <td>{{ log.error_message or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">
+                    No notification records yet.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

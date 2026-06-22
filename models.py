@@ -28,6 +28,21 @@ class Room(db.Model):
     status = db.Column(db.String(20), nullable=False, default="Available")
 
     bookings = db.relationship("Booking", back_populates="room", cascade="all, delete-orphan")
+    notification_logs = db.relationship("NotificationLog", back_populates="room")
+
+
+class NotificationLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    room_id = db.Column(db.Integer, db.ForeignKey("room.id"), nullable=True)
+    booking_id = db.Column(db.Integer, db.ForeignKey("booking.id"), nullable=True)
+    channel = db.Column(db.String(50), nullable=False)
+    status = db.Column(db.String(50), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    error_message = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    room = db.relationship("Room", back_populates="notification_logs")
+    booking = db.relationship("Booking", back_populates="notification_logs")
 
 
 class Booking(db.Model):
@@ -42,3 +57,4 @@ class Booking(db.Model):
 
     guest = db.relationship("Guest", back_populates="bookings")
     room = db.relationship("Room", back_populates="bookings")
+    notification_logs = db.relationship("NotificationLog", back_populates="booking")

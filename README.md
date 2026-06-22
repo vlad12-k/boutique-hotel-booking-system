@@ -244,6 +244,41 @@ Screenshots should be saved in the `screenshots/` folder.
 
 ---
 
+
+## API-Based Housekeeping Notification Extension
+
+The application includes an API-based housekeeping notification workflow that extends the check-out process. When reception staff check out a guest, the system updates the booking status, moves the room to cleaning status, attempts to notify housekeeping through a primary messaging API, uses backup email delivery if required, and records the result in a notification log.
+
+### Notification Features
+
+- Checkout-triggered housekeeping alerts
+- Primary Telegram notification service
+- Backup email notification service
+- Staff-facing notification log page
+- JSON endpoint for notification records: `/api/notifications`
+- Service health endpoint: `/api/health`
+- Environment-based credential management through `.env.example`
+- Data-minimised notification messages that avoid guest personal details
+
+### Notification Workflow
+
+1. Reception staff check out a booking.
+2. The booking status changes to `Checked-out`.
+3. The room status changes to `Cleaning`.
+4. The notification service builds a housekeeping message.
+5. The system attempts primary Telegram delivery.
+6. If the primary channel fails, backup email delivery is attempted.
+7. The final result is stored in the notification log.
+8. Staff can review notification outcomes through `/notifications`.
+
+### Notification Configuration
+
+Copy `.env.example` to `.env` and provide the required credentials for live delivery. The application still records controlled failure logs if notification credentials are not configured, which supports safe testing without exposing secrets.
+
+### API Testing Evidence
+
+The project includes automated tests for the notification service and API endpoints. These tests verify that the health endpoint returns service status, the notification endpoint returns JSON records, and housekeeping messages avoid guest personal data.
+
 ## Current MVP Limitations
 
 This is an academic MVP and not a production hotel management platform.

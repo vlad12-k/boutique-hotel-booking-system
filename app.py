@@ -2,7 +2,7 @@ import os
 import re
 from datetime import date, datetime
 
-from flask import Flask, flash, redirect, render_template, request, url_for
+from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
 
 from models import (
     ACTIVE_BOOKING_STATUSES,
@@ -10,9 +10,12 @@ from models import (
     ROOM_STATUSES,
     Booking,
     Guest,
+    NotificationLog,
     Room,
     db,
 )
+
+from services.notification_service import send_housekeeping_notification
 
 
 DEFAULT_ROOMS = [
@@ -328,9 +331,67 @@ def register_routes(app):
 
         booking.status = "Checked-out"
         booking.room.status = "Cleaning"
+
+        notification_result = send_housekeeping_notification(booking.room, booking)
+        notification_log = NotificationLog(
+            room_id=booking.room.id,
+            booking_id=booking.id,
+            channel=notification_result["channel"],
+            status="Sent" if notification_result["success"] else "Failed",
+            message=notification_result["message"],
+            error_message=notification_result["error"],
+        )
+        db.session.add(notification_log)
         db.session.commit()
-        flash("Guest checked out. Room moved to Cleaning.", "success")
+
+        if notification_result["success"]:
+            flash(
+                f"Guest checked out. Room moved to Cleaning. Housekeeping notification sent via {notification_result['channel']}.",
+                "success",
+            )
+        else:
+            flash(
+                "Guest checked out and room moved to Cleaning, but housekeeping notification failed. Check notification logs.",
+                "warning",
+            )
+
         return redirect(url_for("bookings"))
+
+    @app.get("/notifications")
+    def notifications():
+        logs = NotificationLog.query.order_by(NotificationLog.created_at.desc()).all()
+        return render_template("notifications.html", logs=logs)
+
+    @app.get("/api/notifications")
+    def api_notifications():
+        logs = NotificationLog.query.order_by(NotificationLog.created_at.desc()).all()
+        return jsonify([
+            {
+                "id": log.id,
+                "room_id": log.room_id,
+                "booking_id": log.booking_id,
+                "room_number": log.room.room_number if log.room else None,
+                "channel": log.channel,
+                "status": log.status,
+                "message": log.message,
+                "error_message": log.error_message,
+                "created_at": log.created_at.isoformat(),
+            }
+            for log in logs
+        ])
+
+    @app.get("/api/health")
+    def api_health():
+        return jsonify({
+            "status": "ok",
+            "service": "boutique-hotel-booking-system",
+            "features": [
+                "room-management",
+                "booking-management",
+                "housekeeping-notifications",
+                "notification-logging",
+            ],
+        })
 
 
 app = create_app()

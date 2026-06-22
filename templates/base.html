@@ -37,6 +37,7 @@
             <a class="nav-link {% if request.endpoint in ['rooms', 'add_room'] %}active{% endif %}" href="{{ url_for('rooms') }}">Rooms</a>
             <a class="nav-link {% if request.endpoint in ['guests', 'add_guest'] %}active{% endif %}" href="{{ url_for('guests') }}">Guests</a>
             <a class="nav-link {% if request.endpoint in ['bookings', 'add_booking'] %}active{% endif %}" href="{{ url_for('bookings') }}">Bookings</a>
+            <a class="nav-link {% if request.endpoint == 'notifications' %}active{% endif %}" href="{{ url_for('notifications') }}">Notifications</a>
             <a class="btn btn-primary btn-sm ms-lg-2" href="{{ url_for('add_booking') }}">New Booking</a>
           </div>
         </div>

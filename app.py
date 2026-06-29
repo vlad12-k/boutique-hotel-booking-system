@@ -3,6 +3,7 @@ import re
 from datetime import date, datetime
 
 from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
+from dotenv import load_dotenv
 
 from models import (
     ACTIVE_BOOKING_STATUSES,
@@ -15,7 +16,14 @@ from models import (
     db,
 )
 
-from services.notification_service import send_housekeeping_notification
+
+load_dotenv()
+
+
+from services.notification_service import (
+    send_housekeeping_notification,
+    send_room_ready_notification,
+)
 
 
 DEFAULT_ROOMS = [
@@ -168,14 +176,41 @@ def register_routes(app):
     @app.post("/rooms/<int:room_id>/status")
     def update_room_status(room_id):
         room = Room.query.get_or_404(room_id)
+        previous_status = room.status
         status = request.form.get("status", "").strip()
+
         if status not in ROOM_STATUSES:
             flash("Invalid room status selected.", "danger")
             return redirect(url_for("rooms"))
 
         room.status = status
+
+        if previous_status == "Cleaning" and status == "Available":
+            notification_result = send_room_ready_notification(room)
+            notification_log = NotificationLog(
+                room_id=room.id,
+                booking_id=None,
+                channel=notification_result["channel"],
+                status="Sent" if notification_result["success"] else "Failed",
+                message=notification_result["message"],
+                error_message=notification_result["error"],
+            )
+            db.session.add(notification_log)
+
+            if notification_result["success"]:
+                flash(
+                    f"Room status updated to Available. Room-ready notification sent via {notification_result['channel']}.",
+                    "success",
+                )
+            else:
+                flash(
+                    "Room status updated to Available, but the room-ready notification failed. Check notification logs.",
+                    "warning",
+                )
+        else:
+            flash("Room status updated.", "success")
+
         db.session.commit()
-        flash("Room status updated.", "success")
         return redirect(url_for("rooms"))
 
     @app.route("/guests")
@@ -389,6 +424,7 @@ def register_routes(app):
                 "room-management",
                 "booking-management",
                 "housekeeping-notifications",
+                "room-ready-notifications",
                 "notification-logging",
             ],
         })

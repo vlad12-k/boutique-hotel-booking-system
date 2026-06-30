@@ -96,6 +96,7 @@ Frontend validation and usability enhancements are provided using vanilla JavaSc
 | Templates | Jinja2 |
 | Styling | Bootstrap, custom CSS |
 | Frontend behaviour | Vanilla JavaScript |
+| External APIs | Telegram Bot API, Mailtrap SMTP Sandbox |
 | Version control | Git, GitHub |
 | Documentation | Markdown |
 
@@ -110,12 +111,19 @@ boutique-hotel-booking-system/
 ├── requirements.txt
 ├── README.md
 ├── LICENSE
+├── services/
+│   ├── telegram_service.py
+│   ├── telegram_command_service.py
+│   ├── email_service.py
+│   └── notification_service.py
+├── telegram_bot_worker.py
 ├── templates/
 │   ├── base.html
 │   ├── dashboard.html
 │   ├── rooms.html
 │   ├── guests.html
 │   ├── bookings.html
+│   ├── notifications.html
 │   ├── add_room.html
 │   ├── add_guest.html
 │   └── add_booking.html
@@ -182,14 +190,32 @@ http://127.0.0.1:5000
 
 ---
 
-## Optional Environment Variables
+## Environment Variables
+
+Copy `.env.example` to `.env` before running live notification tests:
+
+```bash
+cp .env.example .env
+```
+
+The local `.env` file stores real credentials and must not be committed to GitHub. The `.env.example` file stores safe placeholder values for documentation and setup purposes.
 
 | Variable | Purpose |
 |---|---|
 | `SECRET_KEY` | Recommended outside local prototype use so Flask sessions stay stable |
 | `FLASK_DEBUG=1` | Enables local debug mode during development |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot token used for housekeeping notifications and staff command replies |
+| `TELEGRAM_CHAT_ID` | Telegram chat used for outbound housekeeping alerts |
+| `TELEGRAM_ALLOWED_CHAT_IDS` | Authorised Telegram staff chat IDs for command bot access control |
+| `TELEGRAM_POLL_INTERVAL_SECONDS` | Local worker polling interval for Telegram staff commands |
+| `EMAIL_HOST` | Mailtrap SMTP host used for fallback email testing |
+| `EMAIL_PORT` | Mailtrap SMTP port, such as `2525` |
+| `EMAIL_USERNAME` | Mailtrap SMTP username |
+| `EMAIL_PASSWORD` | Mailtrap SMTP password stored only in local `.env` |
+| `EMAIL_FROM` | Sender address used in test email messages |
+| `EMAIL_TO` | Recipient address used for captured housekeeping emails |
 
-Example:
+Local debug example:
 
 ```bash
 export FLASK_DEBUG=1
@@ -211,6 +237,11 @@ The `docs/` folder contains supporting academic and development evidence:
 | `docs/test-results-template.md` | Template for actual test results and screenshot evidence |
 | `docs/traceability-matrix.md` | Links requirements to implemented features and evidence |
 | `docs/user-guide.md` | Staff-facing guide for using the system |
+| `docs/api-integration-overview.md` | API integration overview for Telegram, Mailtrap email fallback and JSON audit endpoints |
+| `docs/notification-workflow-design.md` | Notification workflow design and fallback behaviour |
+| `docs/telegram-staff-bot-workflow.md` | Two-way Telegram staff command bot workflow |
+| `docs/email-notification-workflow.md` | Mailtrap SMTP email fallback testing workflow |
+| `docs/data-security-report.md` | Credential handling, data minimisation and API security notes |
 | `docs/peer-review.md` | Peer review feedback and planned improvements |
 
 ---
@@ -240,6 +271,15 @@ Recommended evidence screenshots include:
 - booking filtering;
 - cancel confirmation.
 
+Additional API evidence screenshots should be collected for:
+
+- Telegram housekeeping notification delivery;
+- Telegram staff command bot responses;
+- notification log records;
+- JSON notification API records;
+- Mailtrap SMTP fallback email delivery;
+- automated test output for the notification services.
+
 Screenshots should be saved in the `screenshots/` folder.
 
 ---
@@ -247,13 +287,18 @@ Screenshots should be saved in the `screenshots/` folder.
 
 ## API-Based Housekeeping Notification Extension
 
-The application includes an API-based housekeeping notification workflow that extends the check-out process. When reception staff check out a guest, the system updates the booking status, moves the room to cleaning status, attempts to notify housekeeping through a primary messaging API, uses backup email delivery if required, and records the result in a notification log.
+The application includes an API-based housekeeping notification workflow that extends the room operations process. When reception staff check out a guest, the system updates the booking status, moves the room to `Cleaning`, attempts to notify housekeeping through Telegram, uses Mailtrap SMTP email fallback if the primary channel fails, and records the final result in a notification log.
+
+The extension also includes a two-way Telegram staff command bot. Authorised staff can send commands from Telegram to check room status, list rooms waiting for cleaning, mark rooms as ready, move rooms into maintenance and review recent notification logs.
 
 ### Notification Features
 
-- Checkout-triggered housekeeping alerts
-- Primary Telegram notification service
-- Backup email notification service
+- Check-out-triggered housekeeping alerts
+- Room-ready notifications when a room changes from `Cleaning` to `Available`
+- Primary Telegram Bot API notification service
+- Mailtrap SMTP Sandbox email fallback service
+- Two-way Telegram staff command bot using long polling
+- Authorised Telegram chat ID validation
 - Staff-facing notification log page
 - JSON endpoint for notification records: `/api/notifications`
 - Service health endpoint: `/api/health`
@@ -265,19 +310,53 @@ The application includes an API-based housekeeping notification workflow that ex
 1. Reception staff check out a booking.
 2. The booking status changes to `Checked-out`.
 3. The room status changes to `Cleaning`.
-4. The notification service builds a housekeeping message.
+4. The notification service builds a data-minimised housekeeping message.
 5. The system attempts primary Telegram delivery.
-6. If the primary channel fails, backup email delivery is attempted.
+6. If the primary Telegram channel fails, Mailtrap SMTP email fallback delivery is attempted.
 7. The final result is stored in the notification log.
-8. Staff can review notification outcomes through `/notifications`.
+8. Staff can review notification outcomes through `/notifications` and `/api/notifications`.
+
+### Telegram Staff Command Workflow
+
+Run the Flask application in one terminal:
+
+```bash
+python app.py
+```
+
+Run the Telegram worker in a second terminal:
+
+```bash
+python telegram_bot_worker.py
+```
+
+Supported Telegram staff commands:
+
+| Command | Purpose |
+|---|---|
+| `/help` | Show available commands |
+| `/status` | Show a live room status summary |
+| `/cleaning` | List rooms waiting for housekeeping |
+| `/available` | List available rooms |
+| `/ready <room number>` | Mark a cleaned room as `Available` |
+| `/maintenance <room number>` | Mark a room as `Maintenance` |
+| `/notifications` | Show recent notification log entries |
+
+### Mailtrap Email Fallback Workflow
+
+Mailtrap SMTP Sandbox is used as a safe email testing service. It captures fallback emails inside the Mailtrap inbox instead of sending them to real recipients, which makes it suitable for academic evidence and local API testing.
+
+A fallback email is sent when the primary Telegram notification channel is unavailable. The notification log records the final channel as `email`, and `/api/notifications` exposes the same audit record as JSON.
 
 ### Notification Configuration
 
-Copy `.env.example` to `.env` and provide the required credentials for live delivery. The application still records controlled failure logs if notification credentials are not configured, which supports safe testing without exposing secrets.
+Copy `.env.example` to `.env` and provide the required Telegram and Mailtrap credentials for live delivery tests. The local `.env` file must remain outside version control. The application still records controlled failure logs if notification credentials are not configured, which supports safe testing without exposing secrets.
 
 ### API Testing Evidence
 
-The project includes automated tests for the notification service and API endpoints. These tests verify that the health endpoint returns service status, the notification endpoint returns JSON records, and housekeeping messages avoid guest personal data.
+The project includes automated tests for the notification service, Telegram command handling and email fallback behaviour. These tests verify that housekeeping messages avoid guest personal data, Telegram command parsing works, and email fallback is used when the primary Telegram API raises an error.
+
+---
 
 ## Current MVP Limitations
 
@@ -289,7 +368,7 @@ Current limitations:
 - no customer-facing booking portal;
 - no guest editing workflow yet;
 - no online payment integration;
-- no email or SMS confirmations;
+- no customer-facing email or SMS booking confirmations yet;
 - no cloud deployment;
 - no automated backups;
 - SQLite is used instead of PostgreSQL.
@@ -305,7 +384,7 @@ Recommended future improvements:
 - migrate from SQLite to PostgreSQL;
 - deploy to a cloud platform;
 - add automated backups;
-- add email confirmations;
+- add customer-facing booking confirmation emails;
 - add payment integration;
 - add customer self-booking portal;
 - add audit logs for booking and room status changes;
@@ -315,6 +394,6 @@ Recommended future improvements:
 
 ## Academic Note
 
-This project was created for **Unit 36: Application Development**. It demonstrates application design, development, validation, testing evidence, support documentation and evaluation opportunities.
+This project was created for **Unit 36: Application Development** and extended with API integration evidence suitable for the API-focused unit work. It demonstrates application design, development, validation, testing evidence, support documentation, external service integration and evaluation opportunities.
 
 The system intentionally uses a simple Flask, SQLite, Bootstrap and vanilla JavaScript stack so that the implementation remains understandable, explainable and suitable for academic demonstration.

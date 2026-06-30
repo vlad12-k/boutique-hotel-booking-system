@@ -394,6 +394,6 @@ Recommended future improvements:
 
 ## Academic Note
 
-This project was created for **Unit 36: Application Development** and extended with API integration evidence suitable for the API-focused unit work. It demonstrates application design, development, validation, testing evidence, support documentation, external service integration and evaluation opportunities.
+This project was created for **Unit 36: Application Development and Unit 37: Application Program Interfaces** and extended with API integration evidence suitable for the API-focused unit work. It demonstrates application design, development, validation, testing evidence, support documentation, external service integration and evaluation opportunities.
 
 The system intentionally uses a simple Flask, SQLite, Bootstrap and vanilla JavaScript stack so that the implementation remains understandable, explainable and suitable for academic demonstration.

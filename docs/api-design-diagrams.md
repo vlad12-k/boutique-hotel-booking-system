@@ -22,21 +22,21 @@ This diagram shows the overall API integration architecture. The Flask applicati
 
 ```mermaid
 flowchart TD
-    A[Staff User Browser] --> B[Flask Routes]
-    B --> C[Notification Service]
+    A["Staff User Browser"] --> B["Flask Routes"]
+    B --> C["Notification Service"]
 
-    C --> D[Telegram Service]
-    C --> E[Email Service]
+    C --> D["Telegram Service"]
+    C --> E["Email Service"]
 
-    D --> F[Telegram Bot API]
-    E --> G[Mailtrap SMTP Sandbox]
+    D --> F["Telegram Bot API"]
+    E --> G["Mailtrap SMTP Sandbox"]
 
     C --> H[(SQLite Database)]
-    H --> I[NotificationLog Table]
+    H --> I["NotificationLog Table"]
 
-    I --> J[/notifications Staff Page]
-    I --> K[/api/notifications JSON Endpoint]
-    B --> L[/api/health Endpoint]
+    I --> J["/notifications Staff Page"]
+    I --> K["/api/notifications JSON Endpoint"]
+    B --> L["/api/health Endpoint"]
 ```
 
 ### Explanation
@@ -162,16 +162,16 @@ This diagram shows how notification outcomes are stored and exposed as evidence.
 
 ```mermaid
 flowchart TD
-    A[Telegram Housekeeping Notification] --> D[NotificationLog Table]
-    B[Mailtrap Email Fallback] --> D
-    C[Telegram Staff Command Action] --> D
+    A["Telegram Housekeeping Notification"] --> D["NotificationLog Table"]
+    B["Mailtrap Email Fallback"] --> D
+    C["Telegram Staff Command Action"] --> D
 
-    D --> E[/notifications Staff Page]
-    D --> F[/api/notifications JSON Endpoint]
+    D --> E["/notifications Staff Page"]
+    D --> F["/api/notifications JSON Endpoint"]
 
-    E --> G[Runtime Screenshot Evidence]
-    F --> H[JSON API Screenshot Evidence]
-    D --> I[Testing and Evaluation Evidence]
+    E --> G["Runtime Screenshot Evidence"]
+    F --> H["JSON API Screenshot Evidence"]
+    D --> I["Testing and Evaluation Evidence"]
 ```
 
 ### Explanation

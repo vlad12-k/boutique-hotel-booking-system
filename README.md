@@ -203,6 +203,7 @@ The local `.env` file stores real credentials and must not be committed to GitHu
 | Variable | Purpose |
 |---|---|
 | `SECRET_KEY` | Recommended outside local prototype use so Flask sessions stay stable |
+| `API_ADMIN_TOKEN` | API key used to protect the internal `/api/notifications` JSON audit endpoint |
 | `FLASK_DEBUG=1` | Enables local debug mode during development |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token used for housekeeping notifications and staff command replies |
 | `TELEGRAM_CHAT_ID` | Telegram chat used for outbound housekeeping alerts |
@@ -276,7 +277,7 @@ Additional API evidence screenshots should be collected for:
 - Telegram housekeeping notification delivery;
 - Telegram staff command bot responses;
 - notification log records;
-- JSON notification API records;
+- protected JSON notification API records using `X-API-Key`;
 - Mailtrap SMTP fallback email delivery;
 - automated test output for the notification services.
 
@@ -300,7 +301,7 @@ The extension also includes a two-way Telegram staff command bot. Authorised sta
 - Two-way Telegram staff command bot using long polling
 - Authorised Telegram chat ID validation
 - Staff-facing notification log page
-- JSON endpoint for notification records: `/api/notifications`
+- Protected JSON endpoint for notification records: `/api/notifications`
 - Service health endpoint: `/api/health`
 - Environment-based credential management through `.env.example`
 - Data-minimised notification messages that avoid guest personal details
@@ -314,7 +315,7 @@ The extension also includes a two-way Telegram staff command bot. Authorised sta
 5. The system attempts primary Telegram delivery.
 6. If the primary Telegram channel fails, Mailtrap SMTP email fallback delivery is attempted.
 7. The final result is stored in the notification log.
-8. Staff can review notification outcomes through `/notifications` and `/api/notifications`.
+8. Staff can review notification outcomes through `/notifications`; protected JSON audit evidence is available through `/api/notifications` using the `X-API-Key` request header.
 
 ### Telegram Staff Command Workflow
 
@@ -346,15 +347,25 @@ Supported Telegram staff commands:
 
 Mailtrap SMTP Sandbox is used as a safe email testing service. It captures fallback emails inside the Mailtrap inbox instead of sending them to real recipients, which makes it suitable for academic evidence and local API testing.
 
-A fallback email is sent when the primary Telegram notification channel is unavailable. The notification log records the final channel as `email`, and `/api/notifications` exposes the same audit record as JSON.
+A fallback email is sent when the primary Telegram notification channel is unavailable. The notification log records the final channel as `email`, and `/api/notifications` exposes the same audit record as protected JSON when a valid `X-API-Key` is supplied.
 
 ### Notification Configuration
 
 Copy `.env.example` to `.env` and provide the required Telegram and Mailtrap credentials for live delivery tests. The local `.env` file must remain outside version control. The application still records controlled failure logs if notification credentials are not configured, which supports safe testing without exposing secrets.
 
+### Protected Notification JSON Endpoint
+
+The `/api/notifications` endpoint is intended for internal audit evidence and is protected with a simple API key. Set `API_ADMIN_TOKEN` in the local `.env` file and pass it using the `X-API-Key` request header:
+
+```bash
+curl -H "X-API-Key: your_api_admin_token" http://127.0.0.1:5000/api/notifications
+```
+
+Requests without a valid API key return `401 Unauthorised`.
+
 ### API Testing Evidence
 
-The project includes automated tests for the notification service, Telegram command handling and email fallback behaviour. These tests verify that housekeeping messages avoid guest personal data, Telegram command parsing works, and email fallback is used when the primary Telegram API raises an error.
+The project includes automated tests for the notification service, Telegram command handling, protected JSON access and email fallback behaviour. These tests verify that housekeeping messages avoid guest personal data, Telegram command parsing works, email fallback is used when the primary Telegram API raises an error, `/api/notifications` requires a valid `X-API-Key`, Telegram request errors do not expose bot tokens or full request URLs, and Telegram `ok=false` responses are treated as unsuccessful API responses.
 
 ---
 
@@ -364,7 +375,7 @@ This is an academic MVP and not a production hotel management platform.
 
 Current limitations:
 
-- no role-based login;
+- no full role-based login yet, although `/api/notifications` is protected with an API key;
 - no customer-facing booking portal;
 - no guest editing workflow yet;
 - no online payment integration;
@@ -379,7 +390,7 @@ Current limitations:
 
 Recommended future improvements:
 
-- add receptionist, housekeeping and manager roles;
+- add receptionist, housekeeping and manager roles with full staff authentication and role-based permissions;
 - add Edit Guest functionality;
 - migrate from SQLite to PostgreSQL;
 - deploy to a cloud platform;

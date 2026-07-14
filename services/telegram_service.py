@@ -49,15 +49,23 @@ def send_telegram_reply(chat_id: str | int | None, message: str) -> dict:
     try:
         response = requests.post(url, json=payload, timeout=10)
         response.raise_for_status()
+        data = response.json()
+
+        if not data.get("ok", False):
+            raise TelegramNotificationError(
+                "Telegram API returned an unsuccessful response."
+            )
 
         return {
             "success": True,
             "channel": "telegram",
-            "response": response.json(),
+            "response": data,
         }
 
     except requests.RequestException as exc:
-        raise TelegramNotificationError(str(exc)) from exc
+        raise TelegramNotificationError(
+            "Telegram API request failed without exposing credentials."
+        ) from exc
 
 
 def get_telegram_updates(offset: int | None = None, timeout: int = 10) -> list[dict]:
@@ -77,12 +85,16 @@ def get_telegram_updates(offset: int | None = None, timeout: int = 10) -> list[d
         data = response.json()
 
         if not data.get("ok"):
-            raise TelegramNotificationError("Telegram getUpdates returned an unsuccessful response.")
+            raise TelegramNotificationError(
+                "Telegram getUpdates returned an unsuccessful response."
+            )
 
         return data.get("result", [])
 
     except requests.RequestException as exc:
-        raise TelegramNotificationError(str(exc)) from exc
+        raise TelegramNotificationError(
+            "Telegram getUpdates request failed without exposing credentials."
+        ) from exc
 
 
 def get_allowed_chat_ids() -> set[str]:

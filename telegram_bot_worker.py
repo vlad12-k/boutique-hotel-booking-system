@@ -28,6 +28,8 @@ from services.telegram_service import (
 
 ACCESS_DENIED_MESSAGE = "Access denied. This bot is restricted to authorised hotel staff."
 DEFAULT_POLL_INTERVAL_SECONDS = 3
+PROJECT_ROOT = Path(__file__).resolve().parent
+ENV_PATH = PROJECT_ROOT / ".env"
 
 
 def get_poll_interval_seconds() -> int:
@@ -76,7 +78,7 @@ def process_update(update: dict) -> None:
 
 def run_worker() -> None:
     """Runs the Telegram long-polling loop."""
-    load_dotenv(Path(".env"))
+    load_dotenv(ENV_PATH)
 
     print("Telegram staff bot worker started.")
     print("Press CTRL+C to stop.")

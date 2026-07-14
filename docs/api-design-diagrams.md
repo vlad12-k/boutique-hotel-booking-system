@@ -35,13 +35,13 @@ flowchart TD
     H --> I["NotificationLog Table"]
 
     I --> J["/notifications Staff Page"]
-    I --> K["/api/notifications JSON Endpoint"]
+    I --> K["/api/notifications Protected JSON Endpoint"]
     B --> L["/api/health Endpoint"]
 ```
 
 ### Explanation
 
-The API notification extension uses a layered design. Flask routes handle booking and room status events, while the notification service coordinates external delivery. Telegram is used as the primary communication channel and Mailtrap SMTP Sandbox is used as the fallback email channel. All delivery outcomes are stored in `NotificationLog` and exposed through staff and JSON API views.
+The API notification extension uses a layered design. Flask routes handle booking and room status events, while the notification service coordinates external delivery. Telegram is used as the primary communication channel and Mailtrap SMTP Sandbox is used as the fallback email channel. All delivery outcomes are stored in `NotificationLog` and exposed through the local staff page and the protected JSON API view.
 
 ---
 
@@ -131,12 +131,12 @@ flowchart TD
 
     F --> G{Command type}
 
-    G -- /status --> H[Build room status summary]
-    G -- /cleaning --> I[List rooms in Cleaning status]
-    G -- /available --> J[List Available rooms]
-    G -- /ready room --> K[Update room to Available]
-    G -- /maintenance room --> L[Update room to Maintenance]
-    G -- /notifications --> M[Return recent notification logs]
+    G -- "/status" --> H["Build room status summary"]
+    G -- "/cleaning" --> I["List rooms in Cleaning status"]
+    G -- "/available" --> J["List Available rooms"]
+    G -- "/ready room" --> K["Update room to Available"]
+    G -- "/maintenance room" --> L["Update room to Maintenance"]
+    G -- "/notifications" --> M["Return recent notification logs"]
 
     K --> N[(SQLite Database)]
     L --> N
@@ -166,8 +166,8 @@ flowchart TD
     B["Mailtrap Email Fallback"] --> D
     C["Telegram Staff Command Action"] --> D
 
-    D --> E["/notifications Staff Page"]
-    D --> F["/api/notifications JSON Endpoint"]
+    D --> E["/notifications Local Staff Page"]
+    D --> F["/api/notifications Protected JSON Endpoint"]
 
     E --> G["Runtime Screenshot Evidence"]
     F --> H["JSON API Screenshot Evidence"]
@@ -176,7 +176,7 @@ flowchart TD
 
 ### Explanation
 
-The audit data flow supports testing and evaluation. Instead of relying only on browser messages or terminal output, the implementation stores notification outcomes in the database and exposes them through both a human-readable staff page and a JSON API endpoint.
+The audit data flow supports testing and evaluation. Instead of relying only on browser messages or terminal output, the implementation stores notification outcomes in the database and exposes them through a local human-readable staff page and a protected JSON API endpoint.
 
 ---
 
@@ -188,7 +188,7 @@ These diagrams show the API-specific design of the implemented extension:
 - Mailtrap SMTP Sandbox is used as the fallback email service.
 - Telegram staff commands provide two-way API interaction.
 - `NotificationLog` stores delivery and command audit evidence.
-- `/api/notifications` exposes notification records as JSON.
+- `/api/notifications` exposes notification records as protected JSON evidence.
 - `/api/health` confirms service availability.
 
 This document should be used as Unit 37 API design evidence, while the original `design-diagrams.md` file should remain as Unit 36 application design evidence.

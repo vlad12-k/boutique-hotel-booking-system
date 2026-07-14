@@ -9,7 +9,7 @@ def build_housekeeping_message(room, booking=None) -> str:
     The message avoids guest names, phone numbers, payment details and identity
     information because housekeeping only needs operational room information.
     """
-    room_number = getattr(room, "number", None) or getattr(room, "room_number", "Unknown")
+    room_number = getattr(room, "room_number", "Unknown")
     status = getattr(room, "status", "Cleaning Required")
 
     return (
@@ -30,7 +30,7 @@ def build_room_ready_message(room) -> str:
     payment details and identity information because the notification only
     needs operational room information.
     """
-    room_number = getattr(room, "number", None) or getattr(room, "room_number", "Unknown")
+    room_number = getattr(room, "room_number", "Unknown")
     status = getattr(room, "status", "Available")
 
     return (
@@ -73,7 +73,7 @@ def send_housekeeping_notification(room, booking=None) -> dict:
                 "success": True,
                 "channel": "email",
                 "message": message,
-                "error": f"Primary API failed: {telegram_error}",
+                "error": "Primary API failed; fallback email was used.",
                 "details": email_result,
             }
 
@@ -82,10 +82,7 @@ def send_housekeeping_notification(room, booking=None) -> dict:
                 "success": False,
                 "channel": "failed",
                 "message": message,
-                "error": (
-                    f"Primary API failed: {telegram_error}; "
-                    f"Backup API failed: {email_error}"
-                ),
+                "error": "Primary API and backup email delivery failed.",
                 "details": None,
             }
 
@@ -98,7 +95,7 @@ def send_room_ready_notification(room) -> dict:
     Backup channel: Email.
     """
     message = build_room_ready_message(room)
-    room_number = getattr(room, "number", None) or getattr(room, "room_number", "Unknown")
+    room_number = getattr(room, "room_number", "Unknown")
 
     try:
         telegram_result = send_telegram_message(message)
@@ -122,7 +119,7 @@ def send_room_ready_notification(room) -> dict:
                 "success": True,
                 "channel": "email",
                 "message": message,
-                "error": f"Primary API failed: {telegram_error}",
+                "error": "Primary API failed; fallback email was used.",
                 "details": email_result,
             }
 
@@ -131,9 +128,6 @@ def send_room_ready_notification(room) -> dict:
                 "success": False,
                 "channel": "failed",
                 "message": message,
-                "error": (
-                    f"Primary API failed: {telegram_error}; "
-                    f"Backup API failed: {email_error}"
-                ),
+                "error": "Primary API and backup email delivery failed.",
                 "details": None,
             }

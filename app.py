@@ -1,5 +1,6 @@
 import os
 import re
+from functools import wraps
 from datetime import date, datetime
 
 from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
@@ -44,6 +45,22 @@ EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 def is_valid_email(email):
     return bool(EMAIL_PATTERN.match(email))
+
+
+def require_api_key(view_func):
+    """Protects internal JSON API endpoints with a simple API key."""
+
+    @wraps(view_func)
+    def wrapper(*args, **kwargs):
+        expected_key = os.getenv("API_ADMIN_TOKEN")
+        provided_key = request.headers.get("X-API-Key")
+
+        if not expected_key or provided_key != expected_key:
+            return jsonify({"error": "Unauthorised"}), 401
+
+        return view_func(*args, **kwargs)
+
+    return wrapper
 
 
 def render_add_booking_form(guests_list, rooms_list):
@@ -398,6 +415,7 @@ def register_routes(app):
         return render_template("notifications.html", logs=logs)
 
     @app.get("/api/notifications")
+    @require_api_key
     def api_notifications():
         logs = NotificationLog.query.order_by(NotificationLog.created_at.desc()).all()
         return jsonify([

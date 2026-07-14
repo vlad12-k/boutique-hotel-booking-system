@@ -1,4 +1,5 @@
 import services.notification_service as notification_service
+import services.telegram_service as telegram_service
 from services.notification_service import (
     build_housekeeping_message,
     build_room_ready_message,
@@ -8,7 +9,7 @@ from services.notification_service import (
 
 
 class DummyRoom:
-    number = "101"
+    room_number = "101"
     status = "Cleaning Required"
 
 
@@ -40,7 +41,7 @@ def test_housekeeping_message_uses_room_number_attribute():
 
 def test_room_ready_message_excludes_guest_personal_data():
     class ReadyRoom:
-        number = "103"
+        room_number = "103"
         status = "Available"
 
     message = build_room_ready_message(ReadyRoom())
@@ -117,3 +118,46 @@ def test_room_ready_notification_uses_email_backup_when_telegram_fails(monkeypat
     assert "Housekeeping complete" in result["message"]
     assert "Primary API failed" in result["error"]
     assert result["details"]["host"] == "sandbox.smtp.mailtrap.io"
+
+
+def test_telegram_error_message_does_not_expose_token(monkeypatch):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "123456:SECRET_TOKEN")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "12345")
+
+    def fake_post(*args, **kwargs):
+        raise telegram_service.requests.RequestException(
+            "Failed request to https://api.telegram.org/bot123456:SECRET_TOKEN/sendMessage"
+        )
+
+    monkeypatch.setattr(telegram_service.requests, "post", fake_post)
+
+    try:
+        telegram_service.send_telegram_message("Test message")
+    except telegram_service.TelegramNotificationError as exc:
+        error_text = str(exc)
+        assert "SECRET_TOKEN" not in error_text
+        assert "bot123456" not in error_text
+        assert "api.telegram.org/bot" not in error_text
+
+
+def test_telegram_send_message_handles_ok_false(monkeypatch):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "123456:TEST")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "12345")
+
+    class FakeResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"ok": False, "description": "Bad Request"}
+
+    monkeypatch.setattr(
+        telegram_service.requests,
+        "post",
+        lambda *args, **kwargs: FakeResponse(),
+    )
+
+    try:
+        telegram_service.send_telegram_message("Test message")
+    except telegram_service.TelegramNotificationError as exc:
+        assert "unsuccessful" in str(exc)

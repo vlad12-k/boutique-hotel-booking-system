@@ -65,4 +65,6 @@ def send_backup_email(subject: str, message: str) -> dict:
         }
 
     except Exception as exc:
-        raise EmailNotificationError(str(exc)) from exc
+        raise EmailNotificationError(
+            "Email fallback delivery failed without exposing credentials."
+        ) from exc

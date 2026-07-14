@@ -64,14 +64,14 @@ def process_update(update: dict) -> None:
 
     if not is_authorised_chat(chat_id):
         send_telegram_reply(chat_id, ACCESS_DENIED_MESSAGE)
-        print(f"Rejected unauthorised Telegram chat: {chat_id} from {sender_name}")
+        print("Rejected unauthorised Telegram chat.")
         return
 
     with app.app_context():
         reply = handle_telegram_command(text)
 
     send_telegram_reply(chat_id, reply)
-    print(f"Processed Telegram command from {sender_name} ({chat_id}): {text}")
+    print("Processed authorised Telegram staff command.")
 
 
 def run_worker() -> None:
@@ -103,8 +103,8 @@ def run_worker() -> None:
             print("Telegram staff bot worker stopped.")
             break
 
-        except Exception as exc:  # noqa: BLE001 - worker should not crash during demo use
-            print(f"Unexpected Telegram worker error: {exc}")
+        except Exception:  # noqa: BLE001 - worker should not crash during demo use
+            print("Unexpected Telegram worker error occurred.")
             time.sleep(poll_interval)
 
 

@@ -40,6 +40,7 @@ Credential categories include:
 | `EMAIL_USERNAME` | Mailtrap SMTP username | Local `.env` only |
 | `EMAIL_PASSWORD` | Mailtrap SMTP password | Local `.env` only |
 | `EMAIL_FROM` and `EMAIL_TO` | Test email sender and recipient values | Local `.env`, placeholders in `.env.example` |
+| `API_ADMIN_TOKEN` | Protects the internal `/api/notifications` JSON audit endpoint | Local `.env`, placeholder in `.env.example` |
 
 The repository should contain `.env.example`, but it must not contain `.env`.
 
@@ -53,7 +54,7 @@ This prevents unknown Telegram chats from using commands such as:
 - `/maintenance <room number>`;
 - `/notifications`.
 
-The web application remains a local academic prototype. In production, web routes such as check-out and room status updates would require user authentication and role-based permissions.
+The `/api/notifications` endpoint is protected with a simple API key using the `X-API-Key` request header. This reduces the risk of unauthorised users reading operational notification audit records during demonstration and testing. The wider web application remains a local academic prototype. In production, web routes such as check-out and room status updates would require staff login, role-based permissions and session management.
 
 ## Transport Security
 
@@ -72,12 +73,18 @@ Notification outcomes are stored in the `NotificationLog` table. Logs include op
 - error message;
 - timestamp.
 
-The logs do not store Telegram bot tokens, Mailtrap SMTP passwords or guest-sensitive data.
+The logs do not store Telegram bot tokens, Mailtrap SMTP passwords or guest-sensitive data. Raw Telegram and SMTP exceptions are converted into controlled error messages before they can be stored in `NotificationLog`, reducing the risk that request URLs, tokens or credentials are written into audit records.
 
 The same audit information is available through:
 
 - `/notifications` for staff-facing review;
-- `/api/notifications` for JSON API evidence.
+- `/api/notifications` for protected JSON API evidence using the `X-API-Key` request header.
+
+## Token-in-URL and Error Logging Risk
+
+Telegram Bot API request URLs include the bot token as part of the endpoint path. This is a known security consideration for Telegram integrations because full request URLs could be captured by server logs, proxy logs or raw exception messages.
+
+The implementation mitigates this risk by avoiding logs of full Telegram request URLs and by replacing raw request exceptions with controlled error messages. The Telegram worker also avoids printing chat identifiers, sender names or command text to the terminal. These controls reduce the chance that credentials or operational staff identifiers are exposed through development logs or notification audit records.
 
 ## Error Handling
 
@@ -101,12 +108,15 @@ The final evidence set includes positive, fallback and automated test evidence.
 | A15.0–A15.12 | Telegram staff command bot workflow and authorised command evidence |
 | A16.1–A16.6 | Mailtrap SMTP fallback configuration, JSON audit and captured email evidence |
 
-The automated test suite was updated to show `12 passed`. The tests cover:
+The automated test suite was updated to validate notification delivery, fallback behaviour and security controls. The tests cover:
 
 - data-minimised housekeeping messages;
 - room-ready messages without guest personal data;
 - Telegram command service behaviour;
-- email fallback when Telegram raises an error.
+- email fallback when Telegram raises an error;
+- protected `/api/notifications` access using `X-API-Key`;
+- sanitised Telegram error messages that do not expose bot tokens or request URLs;
+- Telegram `ok=false` responses being treated as unsuccessful API responses.
 
 ## Security Controls Implemented
 
@@ -120,7 +130,10 @@ The current implementation includes the following controls:
 - Guest personal data is excluded from Telegram and email messages.
 - Failed Telegram delivery can fall back to Mailtrap SMTP email.
 - Notification outcomes are logged for review and audit evidence.
+- The `/api/notifications` JSON endpoint is protected with `X-API-Key`.
 - JSON API responses expose operational records but not secrets.
+- Raw Telegram and email delivery errors are sanitised before logging.
+- Telegram worker terminal output avoids chat IDs, sender names and command text.
 
 ## Security Test Summary
 
@@ -131,8 +144,10 @@ The current implementation includes the following controls:
 | Telegram primary delivery | Triggered housekeeping notification workflow | Successful Telegram delivery was logged as `channel=telegram` |
 | Telegram command access | Used authorised Telegram chat commands | Valid commands were processed and logged as `telegram-command` |
 | Email fallback | Made Telegram unavailable and triggered room-ready notification | Mailtrap fallback email was captured and logged as `channel=email` |
-| JSON audit exposure | Checked `/api/notifications` | API returned operational records without tokens or SMTP passwords |
-| Automated tests | Ran full test suite | `12 passed` |
+| JSON audit access control | Checked `/api/notifications` without and with `X-API-Key` | Unauthorised requests returned `401`; valid API key returned operational records |
+| Telegram error sanitisation | Simulated a failed Telegram request containing a token in the exception text | Error message did not expose the token or full Telegram Bot API URL |
+| Telegram logical failure handling | Simulated a Telegram `ok=false` response | Response was treated as unsuccessful rather than logged as a successful delivery |
+| Automated tests | Ran full test suite | All tests passed after security updates |
 
 ## Remaining Risks and Mitigation Plan
 
@@ -140,9 +155,9 @@ The current implementation includes the following controls:
 |---|---|---|
 | Telegram API downtime | Housekeeping may not receive instant Telegram alerts | Keep Mailtrap/email fallback and add retry queue in future |
 | Mailtrap or SMTP failure | Backup email may not be captured | Log failures and add retry/queue handling in future |
-| API credential exposure | Unauthorised messages could be sent | Store secrets in `.env`, avoid committing `.env`, rotate exposed credentials |
+| API credential exposure | Unauthorised messages could be sent | Store secrets in `.env`, avoid committing `.env`, avoid logging full request URLs and rotate exposed credentials |
 | Staff may miss notifications | Room cleaning could be delayed | Add housekeeping acknowledgement and manager dashboard |
-| Local prototype has limited web authentication | Unauthorised web users could trigger operations in production | Add login, role-based access and audit trail before deployment |
+| Local prototype has limited web authentication | Unauthorised web users could trigger operations in production | Keep `/api/notifications` protected with API key and add full staff login, role-based access and session management before deployment |
 | Long-polling worker runs locally | Telegram command bot depends on a local process | Use hosted worker or webhook for production |
 | Logs may grow over time | Logs may become difficult to review | Add filtering, retention policy and admin review process |
 
@@ -150,7 +165,7 @@ The current implementation includes the following controls:
 
 Before production deployment, the system should add:
 
-- staff authentication and role-based authorisation;
+- staff authentication, role-based authorisation and protected internal JSON endpoints;
 - hosted Telegram webhook or managed worker process;
 - verified production email domain rather than sandbox-only email testing;
 - retry queue for failed external API calls;

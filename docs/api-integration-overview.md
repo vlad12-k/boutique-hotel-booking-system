@@ -21,7 +21,7 @@ The implemented API extension covers three connected areas:
 |---|---|---|
 | Telegram Bot API | Primary real-time housekeeping notification channel and staff command interface | Fast, low-cost, easy to demonstrate locally and suitable for operational staff alerts |
 | Mailtrap SMTP Sandbox | Backup email delivery service for fallback testing | Safe testing environment that captures emails without sending them to real recipients |
-| Internal JSON API | Audit evidence through `/api/notifications` and service status through `/api/health` | Supports testing, reporting and integration evidence without exposing credentials |
+| Internal JSON API | Protected audit evidence through `/api/notifications` and service status through `/api/health` | Supports testing, reporting and integration evidence without exposing credentials; `/api/notifications` requires `X-API-Key` |
 
 ## Reason for API Selection
 
@@ -29,7 +29,7 @@ Telegram was selected as the primary communication channel because housekeeping 
 
 Mailtrap SMTP Sandbox was selected as the backup email service because it allows live SMTP integration testing without sending emails to real inboxes. This makes it suitable for academic evidence because the test email can be captured, inspected and screenshotted safely.
 
-The JSON endpoints were retained as internal evidence APIs because they expose structured notification records that can be used to verify delivery outcomes, fallback behaviour and system health.
+The JSON endpoints were retained as internal evidence APIs because they expose structured notification records that can be used to verify delivery outcomes, fallback behaviour and system health. The `/api/notifications` endpoint is protected with an `X-API-Key` header because it exposes operational audit records.
 
 ## Data Minimisation
 
@@ -52,7 +52,7 @@ The application includes the following API and workflow integration points:
 | `POST /bookings/<booking_id>/checkout` | Updates a booking to `Checked-out`, moves the room to `Cleaning` and triggers a housekeeping notification |
 | `POST /rooms/<room_id>/status` | Updates room status and triggers a room-ready notification when a room changes from `Cleaning` to `Available` |
 | `GET /notifications` | Displays notification records in the staff-facing web interface |
-| `GET /api/notifications` | Exposes notification log records as JSON for API testing and evidence |
+| `GET /api/notifications` | Exposes notification log records as protected JSON evidence using `X-API-Key` |
 | `GET /api/health` | Provides a simple health endpoint showing available API features |
 | `telegram_bot_worker.py` | Runs the Telegram long-polling worker for staff commands |
 | Telegram commands | Allow authorised staff to query and update room operations from Telegram |
@@ -69,7 +69,9 @@ The notification workflow follows this sequence:
 5. If Telegram delivery fails, the system attempts Mailtrap SMTP email fallback.
 6. If email fallback succeeds, the result is recorded with `channel=email`.
 7. If both channels fail, the result is recorded with `channel=failed`.
-8. Staff can review the result through `/notifications` or `/api/notifications`.
+8. Staff can review the result through `/notifications`; protected JSON evidence is available through `/api/notifications` using `X-API-Key`.
+
+The implementation falls back to email immediately after a Telegram delivery failure. This is a deliberate reliability trade-off for the prototype: it avoids delaying the reception workflow, although a production version could add a short retry queue before fallback.
 
 ## Telegram Staff Command Workflow
 
@@ -104,7 +106,7 @@ The current evidence set includes:
 - Telegram notification delivery screenshots;
 - Telegram staff command bot screenshots;
 - notification log screenshots;
-- `/api/notifications` JSON audit screenshots;
+- protected `/api/notifications` JSON audit screenshots;
 - Mailtrap SMTP configuration evidence;
 - Mailtrap inbox evidence showing the captured fallback email.
 
@@ -114,7 +116,10 @@ Automated tests currently verify that:
 - room-ready messages avoid guest personal data;
 - Telegram command parsing returns expected staff responses;
 - email fallback is used when the primary Telegram API raises an error;
-- checkout notification behaviour remains covered by the existing test suite.
+- checkout notification behaviour remains covered by the existing test suite;
+- `/api/notifications` requires a valid `X-API-Key`;
+- Telegram request errors are sanitised so bot tokens and full request URLs are not exposed;
+- Telegram `ok=false` responses are treated as unsuccessful API responses.
 
 ## Limitations
 
@@ -122,6 +127,6 @@ The current implementation is suitable for local academic demonstration. In a pr
 
 - replace Telegram long polling with a secure webhook or hosted worker;
 - add retry handling and queueing for failed notifications;
-- add staff authentication and role-based permissions;
+- extend the current API-key protection into full staff authentication and role-based permissions;
 - add production email provider verification instead of sandbox-only email testing;
 - add monitoring and alerting for repeated API failures.

@@ -1,147 +1,201 @@
 # Boutique Hotel Booking and Room Management System
 
-A staff-facing hotel operations web application for a small 10-room boutique hotel. The system helps reception staff and managers manage guests, rooms, bookings, room readiness, check-ins and check-outs from one simple internal dashboard.
+A staff-facing Flask web application for managing guests, rooms, bookings, room readiness, check-ins and check-outs in a small boutique hotel.
 
-This project was developed as an academic prototype for **Unit 36: Application Development** and is also structured as a portfolio-ready Flask project.
+The project contains:
+
+- the core hotel-management application developed for **Unit 36: Application Development**;
+- a later housekeeping-notification extension developed for **Unit 37: Application Program Interfaces**.
+
+The two areas are documented separately so that the original application scope and the later API integration remain clear.
 
 ---
 
 ## Project Overview
 
-Small hotels often rely on spreadsheets, paper notes or disconnected tools to manage bookings and room status. This can create operational problems such as double bookings, unclear room availability, delayed housekeeping updates and limited management visibility.
+Small hotels may rely on spreadsheets, paper notes or disconnected systems to manage bookings and room status. This can increase the risk of:
 
-This application provides a lightweight internal system that supports the core daily workflow of a boutique hotel:
+- overlapping bookings;
+- incorrect booking dates;
+- unavailable rooms being assigned;
+- unclear room readiness;
+- delayed housekeeping communication;
+- limited visibility of daily activity.
 
-1. add guest records;
-2. manage room inventory and room status;
-3. create room bookings;
-4. prevent invalid and overlapping bookings;
-5. check guests in and out;
-6. update room readiness after departure;
-7. view operational activity from a dashboard.
+The core application provides an internal system for managing:
+
+- guest records;
+- room records and operational status;
+- validated bookings;
+- check-in and check-out;
+- booking cancellation;
+- room and booking filtering;
+- dashboard summaries.
+
+The later notification extension adds Telegram housekeeping alerts, SMTP email fallback, a Telegram staff command worker and notification audit records.
 
 ---
 
-## Key Features
+## Core Application Features
 
 ### Dashboard
 
-- Room availability overview
-- Total, available, occupied, cleaning and maintenance room counts
-- Today's check-ins
-- Today's check-outs
-- Recent booking activity
+The dashboard displays:
 
-### Room Management
+- total rooms;
+- available rooms;
+- occupied rooms;
+- rooms being cleaned;
+- rooms under Maintenance;
+- today’s check-ins;
+- today’s check-outs;
+- recent bookings.
 
-- View all rooms
-- Add new rooms
-- Update room status
-- Filter rooms by status using vanilla JavaScript
-- Empty-state message when no rooms match the selected filter
+### Room management
 
-Supported room statuses:
+Staff can:
 
-- Available
-- Occupied
-- Cleaning
-- Maintenance
+- view room records;
+- add rooms;
+- update room status;
+- filter rooms by status.
 
-### Guest Management
+Supported room statuses are:
 
-- Add guest records
-- View guest contact details
-- Validate email format
-- Prevent duplicate guest email addresses
+- `Available`;
+- `Occupied`;
+- `Cleaning`;
+- `Maintenance`.
 
-### Booking Management
+### Guest management
 
-- Create bookings for existing guests and rooms
-- View all bookings
-- Cancel bookings with confirmation prompt
-- Check guests in
-- Check guests out
-- Filter bookings by status using vanilla JavaScript
+Staff can:
 
-Supported booking statuses:
+- add guest records;
+- view guest contact details;
+- validate guest email format;
+- prevent duplicate guest email records.
 
-- Pending
-- Confirmed
-- Checked-in
-- Checked-out
-- Cancelled
+Editing existing guest records remains outside the current MVP.
 
-### Validation and Business Rules
+### Booking management
 
-The application includes backend validation for important business rules:
+Staff can:
 
-- required fields must be completed;
-- check-out date must be after check-in date;
+- create bookings;
+- view booking records;
+- calculate total stay price;
+- cancel eligible bookings;
+- check guests in;
+- check guests out;
+- filter bookings by status.
+
+Supported booking statuses are:
+
+- `Pending`;
+- `Confirmed`;
+- `Checked-in`;
+- `Checked-out`;
+- `Cancelled`.
+
+### Validation rules
+
+The application enforces the following business rules:
+
+- required booking information must be provided;
+- check-out must be later than check-in;
 - rooms under Maintenance cannot be booked;
 - overlapping active bookings for the same room are rejected;
 - guest email addresses must use a valid basic format;
-- duplicate guest email addresses are rejected.
+- duplicate guest email records are rejected.
 
-Frontend validation and usability enhancements are provided using vanilla JavaScript.
+Critical rules are enforced on the server. Vanilla JavaScript provides additional frontend validation, filtering and cancellation confirmation.
 
 ---
 
 ## Technology Stack
 
-| Layer | Technology |
+| Area | Technology |
 |---|---|
-| Backend | Python, Flask |
+| Backend | Python and Flask |
 | ORM | Flask-SQLAlchemy |
 | Database | SQLite |
 | Templates | Jinja2 |
-| Styling | Bootstrap, custom CSS |
-| Frontend behaviour | Vanilla JavaScript |
-| External APIs | Telegram Bot API, Mailtrap SMTP Sandbox |
-| Version control | Git, GitHub |
-| Documentation | Markdown |
+| Interface | Bootstrap and custom CSS |
+| Frontend interaction | Vanilla JavaScript |
+| Automated testing | pytest |
+| Messaging integration | Telegram Bot API |
+| Email fallback | SMTP using Mailtrap Sandbox |
+| Configuration | Environment variables through `.env` |
+| Version control | Git and GitHub |
+| Documentation | Markdown and Mermaid |
 
 ---
 
-## Project Structure
+## Repository Structure
 
 ```text
 boutique-hotel-booking-system/
+├── .env.example
+├── .gitignore
 ├── app.py
 ├── models.py
+├── telegram_bot_worker.py
 ├── requirements.txt
 ├── README.md
 ├── LICENSE
 ├── services/
-│   ├── telegram_service.py
-│   ├── telegram_command_service.py
+│   ├── __init__.py
+│   ├── booking_service.py
 │   ├── email_service.py
-│   └── notification_service.py
-├── telegram_bot_worker.py
+│   ├── notification_service.py
+│   ├── telegram_command_service.py
+│   └── telegram_service.py
 ├── templates/
 │   ├── base.html
 │   ├── dashboard.html
 │   ├── rooms.html
-│   ├── guests.html
-│   ├── bookings.html
-│   ├── notifications.html
 │   ├── add_room.html
+│   ├── guests.html
 │   ├── add_guest.html
-│   └── add_booking.html
+│   ├── bookings.html
+│   ├── add_booking.html
+│   └── notifications.html
 ├── static/
 │   ├── css/
 │   │   └── style.css
 │   └── js/
 │       └── app.js
+├── tests/
+│   ├── conftest.py
+│   ├── test_booking_service.py
+│   ├── test_checkout_notifications.py
+│   ├── test_notification_service.py
+│   └── test_telegram_command_service.py
 ├── docs/
-├── screenshots/
-└── instance/
+│   ├── requirements.md
+│   ├── design-diagrams.md
+│   ├── development-log.md
+│   ├── peer-review.md
+│   ├── technical-notes.md
+│   ├── testing-plan.md
+│   ├── test-results-template.md
+│   ├── traceability-matrix.md
+│   ├── user-guide.md
+│   ├── api-design-diagrams.md
+│   ├── api-integration-overview.md
+│   ├── notification-workflow-design.md
+│   ├── telegram-staff-bot-workflow.md
+│   ├── email-notification-workflow.md
+│   └── data-security-report.md
+└── screenshots/
 ```
 
-The `instance/` folder is used for the local SQLite database and should not be committed to GitHub.
+The local `.env` file contains credentials and must not be committed. Runtime-generated files and operating-system metadata such as `.DS_Store` should also remain outside version control.
 
 ---
 
-## Setup Instructions
+## Installation
 
 ### 1. Clone the repository
 
@@ -150,24 +204,32 @@ git clone <repository-url>
 cd boutique-hotel-booking-system
 ```
 
+Replace `<repository-url>` with the actual GitHub repository URL.
+
 ### 2. Create a virtual environment
 
 ```bash
 python3 -m venv venv
 ```
 
-### 3. Activate the virtual environment
+### 3. Activate the environment
 
-macOS / Linux:
+macOS or Linux:
 
 ```bash
 source venv/bin/activate
 ```
 
-Windows:
+Windows Command Prompt:
 
-```bash
+```bat
 venv\Scripts\activate
+```
+
+Windows PowerShell:
+
+```powershell
+venv\Scripts\Activate.ps1
 ```
 
 ### 4. Install dependencies
@@ -176,148 +238,132 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 5. Run the application
+---
+
+## Running the Core Application
+
+Start the Flask application:
 
 ```bash
 python app.py
 ```
 
-Open the local app in your browser:
+Open:
 
 ```text
 http://127.0.0.1:5000
 ```
 
+The application opens on the Dashboard.
+
+Detailed user instructions are provided in:
+
+```text
+docs/user-guide.md
+```
+
 ---
 
-## Environment Variables
+## Environment Configuration
 
-Copy `.env.example` to `.env` before running live notification tests:
+Copy the example configuration before running live notification tests:
 
 ```bash
 cp .env.example .env
 ```
 
-The local `.env` file stores real credentials and must not be committed to GitHub. The `.env.example` file stores safe placeholder values for documentation and setup purposes.
+The `.env.example` file contains safe placeholders. Real credentials belong only in the local `.env` file.
 
 | Variable | Purpose |
 |---|---|
-| `SECRET_KEY` | Recommended outside local prototype use so Flask sessions stay stable |
-| `API_ADMIN_TOKEN` | API key used to protect the internal `/api/notifications` JSON audit endpoint |
-| `FLASK_DEBUG=1` | Enables local debug mode during development |
-| `TELEGRAM_BOT_TOKEN` | Telegram bot token used for housekeeping notifications and staff command replies |
-| `TELEGRAM_CHAT_ID` | Telegram chat used for outbound housekeeping alerts |
-| `TELEGRAM_ALLOWED_CHAT_IDS` | Authorised Telegram staff chat IDs for command bot access control |
-| `TELEGRAM_POLL_INTERVAL_SECONDS` | Local worker polling interval for Telegram staff commands |
-| `EMAIL_HOST` | Mailtrap SMTP host used for fallback email testing |
-| `EMAIL_PORT` | Mailtrap SMTP port, such as `2525` |
-| `EMAIL_USERNAME` | Mailtrap SMTP username |
-| `EMAIL_PASSWORD` | Mailtrap SMTP password stored only in local `.env` |
-| `EMAIL_FROM` | Sender address used in test email messages |
-| `EMAIL_TO` | Recipient address used for captured housekeeping emails |
+| `SECRET_KEY` | Flask session signing key |
+| `FLASK_DEBUG` | Enables local Flask debug mode when set appropriately |
+| `API_ADMIN_TOKEN` | Protects the internal notification audit endpoint |
+| `TELEGRAM_BOT_TOKEN` | Authenticates requests to the Telegram Bot API |
+| `TELEGRAM_CHAT_ID` | Receives outbound housekeeping notifications |
+| `TELEGRAM_ALLOWED_CHAT_IDS` | Defines authorised Telegram staff chats |
+| `TELEGRAM_POLL_INTERVAL_SECONDS` | Controls the local command-worker polling interval |
+| `EMAIL_HOST` | SMTP host used for fallback email testing |
+| `EMAIL_PORT` | SMTP port |
+| `EMAIL_USERNAME` | SMTP account username |
+| `EMAIL_PASSWORD` | SMTP account password |
+| `EMAIL_FROM` | Sender address used in test messages |
+| `EMAIL_TO` | Recipient address used for captured fallback messages |
 
-Local debug example:
+Do not include real secrets in screenshots, documentation, commits or test output.
+
+---
+
+## Automated Testing
+
+Run the complete regression suite with:
 
 ```bash
-export FLASK_DEBUG=1
-python app.py
+pytest -q
 ```
 
----
+The suite covers:
 
-## Documentation
+- booking-service validation;
+- booking-status behaviour;
+- check-out notification workflow;
+- primary and fallback notification handling;
+- Telegram staff command parsing and authorisation;
+- notification security behaviour.
 
-The `docs/` folder contains supporting academic and development evidence:
+The latest previously recorded result was:
 
-| File | Purpose |
-|---|---|
-| `docs/requirements.md` | User requirements, system requirements and MVP scope |
-| `docs/development-log.md` | Development iterations and reflection |
-| `docs/technical-notes.md` | Architecture, stack and technical explanation |
-| `docs/testing-plan.md` | Manual testing plan and test cases |
-| `docs/test-results-template.md` | Template for actual test results and screenshot evidence |
-| `docs/traceability-matrix.md` | Links requirements to implemented features and evidence |
-| `docs/user-guide.md` | Staff-facing guide for using the system |
-| `docs/api-integration-overview.md` | API integration overview for Telegram, Mailtrap email fallback and JSON audit endpoints |
-| `docs/notification-workflow-design.md` | Notification workflow design and fallback behaviour |
-| `docs/telegram-staff-bot-workflow.md` | Two-way Telegram staff command bot workflow |
-| `docs/email-notification-workflow.md` | Mailtrap SMTP email fallback testing workflow |
-| `docs/data-security-report.md` | Credential handling, data minimisation and API security notes |
-| `docs/peer-review.md` | Peer review feedback and planned improvements |
+```text
+34 passed
+```
 
----
+The suite must be run again after all final code and documentation changes. The final result should be retained as submission evidence and updated if the collected test count changes.
 
-## Testing
-
-Manual testing should be completed using the test cases in:
+Manual test planning and results are recorded separately:
 
 ```text
 docs/testing-plan.md
 docs/test-results-template.md
 ```
 
-Recommended evidence screenshots include:
+---
 
-- dashboard overview;
-- room list;
-- guest creation;
-- invalid guest email validation;
-- booking creation;
-- invalid booking date validation;
-- overlapping booking prevention;
-- maintenance-room booking prevention;
-- check-in result;
-- check-out result;
-- room filtering;
-- booking filtering;
-- cancel confirmation.
+## Unit 37 Housekeeping Notification Extension
 
-Additional API evidence screenshots should be collected for:
+The later extension adds external communication to the original check-out and room-readiness workflows.
 
-- Telegram housekeeping notification delivery;
-- Telegram staff command bot responses;
-- notification log records;
-- protected JSON notification API records using `X-API-Key`;
-- Mailtrap SMTP fallback email delivery;
-- automated test output for the notification services.
+### Main features
 
-Screenshots should be saved in the `screenshots/` folder.
+- housekeeping alert after guest check-out;
+- room-ready notification when a room moves from `Cleaning` to `Available`;
+- primary Telegram delivery;
+- SMTP email fallback;
+- notification log page;
+- protected notification JSON endpoint;
+- Telegram staff command worker;
+- authorised-chat validation;
+- data-minimised notification content.
+
+### Check-out notification flow
+
+1. Staff check out an eligible booking.
+2. The booking changes to `Checked-out`.
+3. The room changes to `Cleaning`.
+4. A data-minimised housekeeping message is created.
+5. Telegram delivery is attempted.
+6. Email fallback is attempted when required.
+7. The outcome is recorded in the notification log.
+
+Detailed behaviour is documented in:
+
+- `docs/api-integration-overview.md`;
+- `docs/notification-workflow-design.md`;
+- `docs/email-notification-workflow.md`;
+- `docs/data-security-report.md`.
 
 ---
 
-
-## API-Based Housekeeping Notification Extension
-
-The application includes an API-based housekeeping notification workflow that extends the room operations process. When reception staff check out a guest, the system updates the booking status, moves the room to `Cleaning`, attempts to notify housekeeping through Telegram, uses Mailtrap SMTP email fallback if the primary channel fails, and records the final result in a notification log.
-
-The extension also includes a two-way Telegram staff command bot. Authorised staff can send commands from Telegram to check room status, list rooms waiting for cleaning, mark rooms as ready, move rooms into maintenance and review recent notification logs.
-
-### Notification Features
-
-- Check-out-triggered housekeeping alerts
-- Room-ready notifications when a room changes from `Cleaning` to `Available`
-- Primary Telegram Bot API notification service
-- Mailtrap SMTP Sandbox email fallback service
-- Two-way Telegram staff command bot using long polling
-- Authorised Telegram chat ID validation
-- Staff-facing notification log page
-- Protected JSON endpoint for notification records: `/api/notifications`
-- Service health endpoint: `/api/health`
-- Environment-based credential management through `.env.example`
-- Data-minimised notification messages that avoid guest personal details
-
-### Notification Workflow
-
-1. Reception staff check out a booking.
-2. The booking status changes to `Checked-out`.
-3. The room status changes to `Cleaning`.
-4. The notification service builds a data-minimised housekeeping message.
-5. The system attempts primary Telegram delivery.
-6. If the primary Telegram channel fails, Mailtrap SMTP email fallback delivery is attempted.
-7. The final result is stored in the notification log.
-8. Staff can review notification outcomes through `/notifications`; protected JSON audit evidence is available through `/api/notifications` using the `X-API-Key` request header.
-
-### Telegram Staff Command Workflow
+## Telegram Staff Command Worker
 
 Run the Flask application in one terminal:
 
@@ -331,80 +377,133 @@ Run the Telegram worker in a second terminal:
 python telegram_bot_worker.py
 ```
 
-Supported Telegram staff commands:
+Supported commands include:
 
 | Command | Purpose |
 |---|---|
-| `/help` | Show available commands |
-| `/status` | Show a live room status summary |
-| `/cleaning` | List rooms waiting for housekeeping |
-| `/available` | List available rooms |
-| `/ready <room number>` | Mark a cleaned room as `Available` |
-| `/maintenance <room number>` | Mark a room as `Maintenance` |
-| `/notifications` | Show recent notification log entries |
+| `/help` | Display available commands |
+| `/status` | Display a room-status summary |
+| `/cleaning` | List rooms waiting for cleaning |
+| `/available` | List rooms marked Available |
+| `/ready <room number>` | Change a cleaned room to Available |
+| `/maintenance <room number>` | Change a room to Maintenance |
+| `/notifications` | Display recent notification records |
 
-### Mailtrap Email Fallback Workflow
+Only chat IDs configured through `TELEGRAM_ALLOWED_CHAT_IDS` should be permitted to execute staff commands.
 
-Mailtrap SMTP Sandbox is used as a safe email testing service. It captures fallback emails inside the Mailtrap inbox instead of sending them to real recipients, which makes it suitable for academic evidence and local API testing.
+Further details are provided in:
 
-A fallback email is sent when the primary Telegram notification channel is unavailable. The notification log records the final channel as `email`, and `/api/notifications` exposes the same audit record as protected JSON when a valid `X-API-Key` is supplied.
-
-### Notification Configuration
-
-Copy `.env.example` to `.env` and provide the required Telegram and Mailtrap credentials for live delivery tests. The local `.env` file must remain outside version control. The application still records controlled failure logs if notification credentials are not configured, which supports safe testing without exposing secrets.
-
-### Protected Notification JSON Endpoint
-
-The `/api/notifications` endpoint is intended for internal audit evidence and is protected with a simple API key. Set `API_ADMIN_TOKEN` in the local `.env` file and pass it using the `X-API-Key` request header:
-
-```bash
-curl -H "X-API-Key: your_api_admin_token" http://127.0.0.1:5000/api/notifications
+```text
+docs/telegram-staff-bot-workflow.md
 ```
 
-Requests without a valid API key return `401 Unauthorised`.
+---
 
-### API Testing Evidence
+## Internal API Endpoints
 
-The project includes automated tests for the notification service, Telegram command handling, protected JSON access and email fallback behaviour. These tests verify that housekeeping messages avoid guest personal data, Telegram command parsing works, email fallback is used when the primary Telegram API raises an error, `/api/notifications` requires a valid `X-API-Key`, Telegram request errors do not expose bot tokens or full request URLs, and Telegram `ok=false` responses are treated as unsuccessful API responses.
+The extension includes internal endpoints for health and audit evidence.
+
+| Endpoint | Purpose |
+|---|---|
+| `/api/health` | Returns application or service health information |
+| `/api/notifications` | Returns notification audit records |
+
+The notification endpoint requires the configured administrative token in the `X-API-Key` header.
+
+Example:
+
+```bash
+curl \
+  -H "X-API-Key: your_api_admin_token" \
+  http://127.0.0.1:5000/api/notifications
+```
+
+Requests without a valid key should be rejected.
 
 ---
 
-## Current MVP Limitations
+## Documentation
 
-This is an academic MVP and not a production hotel management platform.
+### Unit 36: Application Development
 
-Current limitations:
+| File | Purpose |
+|---|---|
+| `docs/requirements.md` | Defines requirements, scope, risks and acceptance criteria |
+| `docs/design-diagrams.md` | Contains ERD, DFD, workflows, use cases and page plan |
+| `docs/development-log.md` | Records development iterations and reflection |
+| `docs/peer-review.md` | Records supplied model review and the response to feedback |
+| `docs/technical-notes.md` | Explains architecture and implementation decisions |
+| `docs/testing-plan.md` | Defines the planned testing approach |
+| `docs/test-results-template.md` | Records actual test outcomes and evidence |
+| `docs/traceability-matrix.md` | Connects requirements, implementation, tests and evidence |
+| `docs/user-guide.md` | Explains how staff use the application |
 
-- no full role-based login yet, although `/api/notifications` is protected with an API key;
+### Unit 37: Application Program Interfaces
+
+| File | Purpose |
+|---|---|
+| `docs/api-design-diagrams.md` | Shows API and notification-extension design |
+| `docs/api-integration-overview.md` | Summarises external services and endpoints |
+| `docs/notification-workflow-design.md` | Defines primary, fallback and logging behaviour |
+| `docs/telegram-staff-bot-workflow.md` | Documents two-way Telegram staff commands |
+| `docs/email-notification-workflow.md` | Documents SMTP fallback testing |
+| `docs/data-security-report.md` | Explains credential protection, access control and data minimisation |
+
+---
+
+## Current Limitations
+
+The project is an academic prototype rather than a production hotel-management platform.
+
+Current limitations include:
+
+- no complete staff authentication system;
+- no role-based receptionist, housekeeping and manager permissions;
+- no guest-record editing;
 - no customer-facing booking portal;
-- no guest editing workflow yet;
-- no online payment integration;
-- no customer-facing email or SMS booking confirmations yet;
-- no cloud deployment;
-- no automated backups;
-- SQLite is used instead of PostgreSQL.
+- no online payment processing;
+- no customer booking confirmations;
+- no production cloud deployment;
+- no automated backup process;
+- SQLite rather than a production server database;
+- no advanced occupancy or revenue analytics.
 
 ---
 
-## Future Improvements
+## Future Development
 
-Recommended future improvements:
+Appropriate future improvements include:
 
-- add receptionist, housekeeping and manager roles with full staff authentication and role-based permissions;
-- add Edit Guest functionality;
-- migrate from SQLite to PostgreSQL;
-- deploy to a cloud platform;
-- add automated backups;
-- add customer-facing booking confirmation emails;
-- add payment integration;
-- add customer self-booking portal;
-- add audit logs for booking and room status changes;
-- add reporting charts for occupancy and revenue.
+- staff authentication and role-based access control;
+- Edit Guest functionality;
+- PostgreSQL migration;
+- cloud deployment;
+- automated database backups;
+- customer booking confirmation emails;
+- online payment integration;
+- customer self-booking;
+- audit logs for booking and room-status changes;
+- occupancy and revenue reporting.
 
 ---
 
-## Academic Note
+## Academic Context
 
-This project was created for **Unit 36: Application Development and Unit 37: Application Program Interfaces** and extended with API integration evidence suitable for the API-focused unit work. It demonstrates application design, development, validation, testing evidence, support documentation, external service integration and evaluation opportunities.
+The core application was developed for **Unit 36: Application Development**.
 
-The system intentionally uses a simple Flask, SQLite, Bootstrap and vanilla JavaScript stack so that the implementation remains understandable, explainable and suitable for academic demonstration.
+The housekeeping notification, Telegram, SMTP fallback and internal API functionality form a later extension for **Unit 37: Application Program Interfaces**.
+
+The project demonstrates:
+
+- requirements analysis;
+- relational data modelling;
+- application design;
+- Flask development;
+- business-rule validation;
+- manual and automated testing;
+- traceability;
+- user and technical documentation;
+- external service integration;
+- security and data-minimisation considerations.
+
+The stack remains intentionally lightweight so that the implementation can be demonstrated, tested and explained clearly.

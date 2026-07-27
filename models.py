@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask_sqlalchemy import SQLAlchemy
 
@@ -13,11 +13,18 @@ ACTIVE_BOOKING_STATUSES = ["Pending", "Confirmed", "Checked-in"]
 class Guest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     full_name = db.Column(db.String(120), nullable=False)
-    email = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     phone = db.Column(db.String(30), nullable=False)
     notes = db.Column(db.Text)
 
-    bookings = db.relationship("Booking", back_populates="guest", cascade="all, delete-orphan")
+    bookings = db.relationship(
+        "Booking",
+        back_populates="guest",
+        cascade="all, delete-orphan",
+    )
+
+    def __repr__(self):
+        return f"<Guest {self.id}: {self.full_name}>"
 
 
 class Room(db.Model):
@@ -27,8 +34,18 @@ class Room(db.Model):
     price_per_night = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(20), nullable=False, default="Available")
 
-    bookings = db.relationship("Booking", back_populates="room", cascade="all, delete-orphan")
-    notification_logs = db.relationship("NotificationLog", back_populates="room")
+    bookings = db.relationship(
+        "Booking",
+        back_populates="room",
+        cascade="all, delete-orphan",
+    )
+    notification_logs = db.relationship(
+        "NotificationLog",
+        back_populates="room",
+    )
+
+    def __repr__(self):
+        return f"<Room {self.id}: {self.room_number}>"
 
 
 class NotificationLog(db.Model):
@@ -39,10 +56,17 @@ class NotificationLog(db.Model):
     status = db.Column(db.String(50), nullable=False)
     message = db.Column(db.Text, nullable=False)
     error_message = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
 
     room = db.relationship("Room", back_populates="notification_logs")
     booking = db.relationship("Booking", back_populates="notification_logs")
+
+    def __repr__(self):
+        return f"<NotificationLog {self.id}: {self.channel}/{self.status}>"
 
 
 class Booking(db.Model):
@@ -53,8 +77,21 @@ class Booking(db.Model):
     check_out_date = db.Column(db.Date, nullable=False)
     status = db.Column(db.String(20), nullable=False, default="Pending")
     total_price = db.Column(db.Float, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
 
     guest = db.relationship("Guest", back_populates="bookings")
     room = db.relationship("Room", back_populates="bookings")
-    notification_logs = db.relationship("NotificationLog", back_populates="booking")
+    notification_logs = db.relationship(
+        "NotificationLog",
+        back_populates="booking",
+    )
+
+    def __repr__(self):
+        return (
+            f"<Booking {self.id}: guest={self.guest_id}, "
+            f"room={self.room_id}, status={self.status}>"
+        )

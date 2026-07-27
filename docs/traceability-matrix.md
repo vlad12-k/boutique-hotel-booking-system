@@ -1,116 +1,124 @@
 # Requirement Traceability Matrix
 
-## Project
-Boutique Hotel Booking and Room Management System
+This matrix links the requirements of the Boutique Hotel Booking and Room Management System to design documentation, implementation files, planned tests, recorded results and supporting evidence.
 
-## Purpose
-This traceability matrix links the user requirements, system requirements, implemented features, source files, manual test cases and screenshot evidence for the Boutique Hotel Booking and Room Management System.
-
-It demonstrates that the application was built against defined requirements and that the final implementation was manually tested using documented evidence.
+The test identifiers correspond directly to `docs/testing-plan.md` and `docs/test-results-template.md`.
 
 ---
 
-## Traceability Status Key
+## Traceability Status
 
 | Status | Meaning |
 |---|---|
-| Covered | Requirement is implemented and tested in the current MVP |
-| Partially Covered | Requirement is partly implemented but needs further improvement |
-| Planned Improvement | Requirement is outside the current MVP and suitable for future development |
-| Not Covered | Requirement is not currently implemented |
+| Covered | The requirement is implemented and supported by completed test or implementation evidence |
+| Partially Covered | The requirement is implemented, but part of the test result or evidence still requires verification |
+| Implementation Evidence | The technical requirement is demonstrated through source-code or configuration evidence and does not require a separate browser test |
+| Planned Improvement | The requirement is outside the current MVP and retained for future development |
+| Not Covered | The requirement is not implemented |
 
 ---
 
 ## User Requirement Traceability
 
-| Requirement ID | User Requirement | Implemented Feature | Main File(s) | Test Case(s) | Screenshot Evidence | Status |
-|---|---|---|---|---|---|---|
-| UR1 | Staff must be able to add and view guest records with contact details. | Add Guest form, Guests table, email validation and duplicate email prevention. | `app.py`, `models.py`, `templates/add_guest.html`, `templates/guests.html` | T05, T06, T07, T08 | `screenshots/05-guests-page.png`, `screenshots/06-add-guest-form.png`, `screenshots/07-invalid-email-validation.png`, `screenshots/08-duplicate-email-validation.png` | Covered |
-| UR2 | Staff must be able to add rooms and view the list of hotel rooms. | Add Room form, seeded room records and Rooms table. | `app.py`, `models.py`, `templates/add_room.html`, `templates/rooms.html` | T02 | `screenshots/02-rooms-page.png` | Covered |
-| UR3 | Staff must be able to update room status. | Room status update form on the Rooms page. | `app.py`, `templates/rooms.html` | T03 | `screenshots/03-room-status-update.png` | Covered |
-| UR4 | Staff must be able to create and manage bookings. | Add Booking form, Bookings table, cancellation action and booking workflow controls. | `app.py`, `models.py`, `templates/add_booking.html`, `templates/bookings.html` | T09, T13, T17 | `screenshots/09-add-booking-form.png`, `screenshots/13-bookings-page.png`, `screenshots/17-cancel-confirmation.png` | Covered |
-| UR5 | Staff must be able to check guests in and out. | Check-in and check-out actions that update booking and room status. | `app.py`, `templates/bookings.html` | T15, T16 | `screenshots/15-check-in-result.png`, `screenshots/16-check-out-result.png` | Covered |
-| UR6 | Staff must be able to see room availability from a dashboard and rooms page. | Dashboard summary cards and Rooms page status information. | `app.py`, `templates/dashboard.html`, `templates/rooms.html` | T01, T02 | `screenshots/01-dashboard.png`, `screenshots/02-rooms-page.png` | Covered |
-| UR7 | Managers must be able to view booking activity and room status summaries. | Dashboard overview, room counts, today's check-ins, today's check-outs and recent booking activity. | `app.py`, `templates/dashboard.html` | T01 | `screenshots/01-dashboard.png` | Covered |
-| UR8 | Staff should be able to filter rooms and bookings by status. | Vanilla JavaScript room filter and booking filter. | `static/js/app.js`, `templates/rooms.html`, `templates/bookings.html` | T04, T14 | `screenshots/04-room-filter.png`, `screenshots/14-booking-filter.png` | Covered |
-| UR9 | Staff should receive clear validation feedback when booking data is invalid. | Backend booking validation, frontend date validation, overlap prevention and maintenance-room booking prevention. | `app.py`, `static/js/app.js`, `templates/add_booking.html` | T10, T11, T12 | `screenshots/10-invalid-booking-date.png`, `screenshots/11-maintenance-room-booking-prevention.png`, `screenshots/12-overlap-booking-prevention.png` | Covered |
-| UR10 | Staff should be able to edit guest records if contact details are entered incorrectly. | Edit Guest workflow. | Planned future files: `templates/edit_guest.html`, updated `app.py` and `templates/guests.html` | Not tested in current MVP | No current screenshot evidence | Planned Improvement |
+| ID | Requirement | Design and Implementation Evidence | Test Result | Evidence | Status |
+|---|---|---|---|---|---|
+| UR1 | Staff must be able to add and view guest records with contact details. | `models.py`; guest routes in `app.py`; `templates/add_guest.html`; `templates/guests.html` | TC03 Partial; TC04 Pass; TC05 Pass | Guests page, invalid-email and duplicate-email evidence | Partially Covered |
+| UR2 | Staff must be able to add rooms and view the hotel room list. | `models.py`; room routes in `app.py`; `templates/add_room.html`; `templates/rooms.html` | TC02 Pass; TC06 Not Run | `screenshots/02-rooms-page.png`; room-creation evidence required | Partially Covered |
+| UR3 | Staff must be able to update room status. | Room-status route in `app.py`; `templates/rooms.html` | TC14 Pass | Room-status update evidence | Covered |
+| UR4 | Staff must be able to create and manage bookings. | `Booking` model; booking routes in `app.py`; `templates/add_booking.html`; `templates/bookings.html` | TC07 Partial; TC17 Partial | Booking form, booking list and cancellation evidence | Partially Covered |
+| UR5 | Staff must be able to check guests in and out. | Check-in and check-out routes in `app.py`; `services/booking_service.py`; `templates/bookings.html` | TC12 Pass; TC13 Pass | Check-in and check-out evidence | Covered |
+| UR6 | Staff must be able to view room availability through the dashboard and Rooms page. | Dashboard route; `templates/dashboard.html`; `templates/rooms.html` | TC01 Pass; TC02 Pass; TC18 Partial | `screenshots/01-dashboard.png`; `screenshots/02-rooms-page.png` | Partially Covered |
+| UR7 | Managers must be able to view booking activity and room-status summaries. | Dashboard calculations in `app.py`; `templates/dashboard.html` | TC01 Pass; TC18 Partial | Dashboard screenshot; final total comparison required | Partially Covered |
+| UR8 | Staff should be able to filter rooms and bookings by status. | `static/js/app.js`; `templates/rooms.html`; `templates/bookings.html` | TC15 Pass; TC16 Pass | `screenshots/04-room-filter.png`; `screenshots/14-booking-filter.png` | Covered |
+| UR9 | Staff should receive clear feedback when booking data is invalid. | Booking validation in `app.py`; `services/booking_service.py`; client-side validation in `static/js/app.js` | TC08 Pass; TC09 Pass; TC10 Pass; TC11 Partial | Invalid-date, overlap and Maintenance evidence; additional client-side evidence required | Covered |
+| UR10 | Staff should be able to edit guest records when contact details are incorrect. | No Edit Guest route or template in the current MVP | Not tested | No current evidence | Planned Improvement |
 
 ---
 
 ## System Requirement Traceability
 
-| Requirement ID | System Requirement | Implementation Evidence | Related Test Case(s) | Screenshot Evidence | Status |
-|---|---|---|---|---|---|
-| SR1 | The system shall be implemented as a Python Flask web application. | `app.py`, `requirements.txt` | T19 | `screenshots/19-vscode-app-routes.png` | Covered |
-| SR2 | The system shall use Flask-SQLAlchemy as the ORM. | `models.py`, `requirements.txt` | T20 | `screenshots/20-vscode-models.png` | Covered |
-| SR3 | The system shall use SQLite as the local development database. | SQLite configuration in `app.py`; local runtime database stored in `instance/`. | T20 | `screenshots/20-vscode-models.png` | Covered |
-| SR4 | The system shall use Jinja2 templates for server-side rendering. | `templates/` folder and `render_template` usage in `app.py`. | T18, T19 | `screenshots/18-vscode-project-structure.png`, `screenshots/19-vscode-app-routes.png` | Covered |
-| SR5 | The system shall use Bootstrap and custom CSS for a responsive interface. | `templates/base.html`, `static/css/style.css` | T21 | `screenshots/21-vscode-frontend-files.png` | Covered |
-| SR6 | The system shall store Guest, Room and Booking records. | `Guest`, `Room` and `Booking` models in `models.py`. | T05, T13, T20 | `screenshots/05-guests-page.png`, `screenshots/13-bookings-page.png`, `screenshots/20-vscode-models.png` | Covered |
-| SR7 | The system shall validate required booking fields. | Booking creation route validation in `app.py`. | T09, T10 | `screenshots/09-add-booking-form.png`, `screenshots/10-invalid-booking-date.png` | Covered |
-| SR8 | The system shall validate that check-out date is after check-in date. | Backend validation in `app.py` and frontend validation in `static/js/app.js`. | T10 | `screenshots/10-invalid-booking-date.png` | Covered |
-| SR9 | The system shall prevent overlapping active bookings for the same room. | Overlap query in booking creation route. | T12 | `screenshots/12-overlap-booking-prevention.png` | Covered |
-| SR10 | The system shall prevent bookings for rooms under Maintenance. | Maintenance-room validation in booking creation route. | T11 | `screenshots/11-maintenance-room-booking-prevention.png` | Covered |
-| SR11 | The system shall update room status after check-in and check-out. | Check-in and check-out routes in `app.py`. | T15, T16 | `screenshots/15-check-in-result.png`, `screenshots/16-check-out-result.png` | Covered |
-| SR12 | The system shall use vanilla JavaScript for lightweight frontend interaction. | `static/js/app.js` for filtering, date validation and cancel confirmation. | T04, T14, T17, T21 | `screenshots/04-room-filter.png`, `screenshots/14-booking-filter.png`, `screenshots/17-cancel-confirmation.png`, `screenshots/21-vscode-frontend-files.png` | Covered |
-| SR13 | The system shall include documentation and testing evidence. | `docs/` folder, testing document, traceability matrix, screenshots and GitHub evidence. | T18, T22, T23, T24, T25 | `screenshots/18-vscode-project-structure.png`, `screenshots/22-terminal-git-clean.png`, `screenshots/23-github-pull-request.png`, `screenshots/24-github-files-changed.png`, `screenshots/25-github-branch.png` | Covered |
+| ID | System Requirement | Implementation Evidence | Related Test or Verification | Status |
+|---|---|---|---|---|
+| SR1 | The system shall be implemented as a Python Flask web application. | `app.py`; `requirements.txt` | Application starts locally and supports TC01–TC19 | Implementation Evidence |
+| SR2 | The system shall use Flask-SQLAlchemy as its ORM. | SQLAlchemy configuration in `app.py`; models in `models.py`; dependency in `requirements.txt` | Source-code verification | Implementation Evidence |
+| SR3 | The system shall use SQLite as the local database. | Database configuration in `app.py`; local runtime database | Application and automated-test execution | Implementation Evidence |
+| SR4 | The system shall use Jinja2 templates for server-side page rendering. | `templates/`; `render_template` usage in `app.py` | TC01, TC02, TC03, TC07 | Covered |
+| SR5 | The system shall use Bootstrap and custom CSS for the staff-facing interface. | `templates/base.html`; `static/css/style.css` | TC19 Partial | Partially Covered |
+| SR6 | The system shall store Guest, Room and Booking records. | `Guest`, `Room` and `Booking` models in `models.py` | TC02 Pass; TC03 Partial; TC06 Not Run; TC07 Partial | Partially Covered |
+| SR7 | The system shall validate required booking fields and calculate booking totals. | Booking route and service logic in `app.py` and `services/booking_service.py` | TC07 Partial; AT01 Pass | Partially Covered |
+| SR8 | The system shall ensure that check-out is later than check-in. | Backend booking validation; client-side validation in `static/js/app.js` | TC08 Pass; TC11 Partial | Covered |
+| SR9 | The system shall prevent overlapping active bookings for the same room. | Overlap validation in `services/booking_service.py` and booking route | TC09 Pass; AT01 Pass | Covered |
+| SR10 | The system shall prevent bookings for rooms under Maintenance. | Maintenance validation in booking logic | TC10 Pass; AT01 Pass | Covered |
+| SR11 | The system shall update booking and room statuses during check-in and check-out. | Check-in and check-out logic in `app.py` and `services/booking_service.py` | TC12 Pass; TC13 Pass; AT01 Pass | Covered |
+| SR12 | The system shall use vanilla JavaScript for lightweight frontend interaction. | Filtering, date validation and confirmation logic in `static/js/app.js` | TC11 Partial; TC15 Pass; TC16 Pass; TC17 Partial | Partially Covered |
+| SR13 | The system shall validate guest email format and prevent duplicate guest email records. | Guest validation in `app.py`; database constraint or duplicate-checking logic in `models.py` | TC04 Pass; TC05 Pass | Covered |
 
 ---
 
-## Feature-to-Evidence Matrix
+## Non-Functional Requirement Traceability
 
-| Feature | User Value | Code Evidence | Documentation Evidence | Test Case(s) | Screenshot Evidence |
-|---|---|---|---|---|---|
-| Dashboard | Gives staff and managers a quick operational overview. | `templates/dashboard.html`, dashboard route in `app.py` | `docs/user-guide.md`, `docs/testing-plan.md`, `docs/test-results-template.md` | T01 | `screenshots/01-dashboard.png` |
-| Room list | Shows current room availability and room readiness. | `templates/rooms.html`, `Room` model in `models.py` | `docs/user-guide.md`, `docs/requirements.md` | T02 | `screenshots/02-rooms-page.png` |
-| Room status update | Helps reception and housekeeping coordinate room readiness. | room status update route in `app.py`, `templates/rooms.html` | `docs/user-guide.md`, `docs/testing-plan.md` | T03 | `screenshots/03-room-status-update.png` |
-| Room filtering | Helps staff find rooms by status quickly. | `static/js/app.js`, `templates/rooms.html` | `docs/testing-plan.md`, `docs/test-results-template.md` | T04 | `screenshots/04-room-filter.png` |
-| Guest list | Allows staff to review guest contact records. | `templates/guests.html`, `Guest` model in `models.py` | `docs/user-guide.md`, `docs/requirements.md` | T05 | `screenshots/05-guests-page.png` |
-| Guest creation | Allows staff to store guest contact details. | add guest route in `app.py`, `templates/add_guest.html` | `docs/user-guide.md`, `docs/requirements.md` | T06 | `screenshots/06-add-guest-form.png` |
-| Guest email validation | Reduces incorrect guest data entry. | email validation in `app.py` | `docs/testing-plan.md`, `docs/test-results-template.md` | T07, T08 | `screenshots/07-invalid-email-validation.png`, `screenshots/08-duplicate-email-validation.png` |
-| Booking creation | Allows staff to reserve rooms for guests. | add booking route in `app.py`, `Booking` model in `models.py`, `templates/add_booking.html` | `docs/user-guide.md`, `docs/testing-plan.md` | T09 | `screenshots/09-add-booking-form.png` |
-| Invalid date validation | Prevents impossible bookings. | `app.py`, `static/js/app.js` | `docs/testing-plan.md`, `docs/test-results-template.md` | T10 | `screenshots/10-invalid-booking-date.png` |
-| Maintenance-room prevention | Prevents unusable rooms being booked. | maintenance validation in `app.py` | `docs/requirements.md`, `docs/testing-plan.md` | T11 | `screenshots/11-maintenance-room-booking-prevention.png` |
-| Overlap prevention | Reduces double-booking risk. | overlap validation query in `app.py` | `docs/requirements.md`, `docs/testing-plan.md` | T12 | `screenshots/12-overlap-booking-prevention.png` |
-| Bookings list | Shows booking status, dates, room, guest, price and actions. | `templates/bookings.html`, bookings route in `app.py` | `docs/user-guide.md`, `docs/testing-plan.md` | T13 | `screenshots/13-bookings-page.png` |
-| Booking filtering | Helps staff find bookings by status quickly. | `static/js/app.js`, `templates/bookings.html` | `docs/testing-plan.md`, `docs/test-results-template.md` | T14 | `screenshots/14-booking-filter.png` |
-| Check-in workflow | Updates booking and room status when the guest arrives. | check-in route in `app.py`, `templates/bookings.html` | `docs/user-guide.md` | T15 | `screenshots/15-check-in-result.png` |
-| Check-out workflow | Updates room to Cleaning after the guest leaves. | check-out route in `app.py`, `templates/bookings.html` | `docs/user-guide.md` | T16 | `screenshots/16-check-out-result.png` |
-| Cancel confirmation | Reduces accidental booking cancellation. | `static/js/app.js`, `templates/bookings.html` | `docs/testing-plan.md`, `docs/test-results-template.md` | T17 | `screenshots/17-cancel-confirmation.png` |
-| Project structure | Demonstrates maintainable organisation of source code and evidence. | `app.py`, `models.py`, `templates/`, `static/`, `docs/`, `screenshots/` | `README.md`, `docs/technical-notes.md` | T18 | `screenshots/18-vscode-project-structure.png` |
-| Version control | Demonstrates use of GitHub workflow and pull request review. | Git branch, commits and pull request | `README.md`, `docs/development-log.md` | T22, T23, T24, T25 | `screenshots/22-terminal-git-clean.png`, `screenshots/23-github-pull-request.png`, `screenshots/24-github-files-changed.png`, `screenshots/25-github-branch.png` |
+| ID | Area | Implementation Evidence | Test or Verification | Status |
+|---|---|---|---|---|
+| NFR1 | Usability | Consistent navigation, forms, tables, labels and staff-facing page structure | TC19 Partial | Partially Covered |
+| NFR2 | Maintainability | Separation of models, templates, static assets, services, tests and documentation | Source-code and project-structure verification | Implementation Evidence |
+| NFR3 | Reliability | Validation, controlled status transitions and automated regression testing | AT01 Pass; TC08–TC13 | Covered |
+| NFR4 | Portability | Local dependency installation, SQLite and documented run command | Local macOS execution; `requirements.txt`; `README.md` | Implementation Evidence |
+| NFR5 | Responsiveness | Bootstrap layout and responsive frontend structure | TC19 Partial | Partially Covered |
+| NFR6 | Data minimisation | Core booking records store only information required for hotel operations | Model and form review | Implementation Evidence |
+| NFR7 | Testability | Reusable service logic, pytest tests and documented test cases | AT01–AT03; `tests/`; testing documentation | Covered |
+| NFR8 | Security | Server-side validation, environment-variable handling for later integrations and no hard-coded production credentials | Source-code and configuration review | Implementation Evidence |
 
 ---
 
-## Coverage Summary
+## Automated Test Traceability
 
-| Category | Coverage Summary |
+| Test ID | Test Area | Implementation Evidence | Recorded Result | Status |
+|---|---|---|---|---|
+| AT01 | Complete regression suite | All files in `tests/` | Latest recorded result: `34 passed` | Pass |
+| AT02 | Booking-service rules | `tests/test_booking_service.py` | Included in successful complete test run | Pass |
+| AT03 | Notification-extension regression | `tests/test_checkout_notifications.py`; `tests/test_notification_service.py`; `tests/test_telegram_command_service.py` | Included in successful complete test run | Pass |
+
+The final pytest result must be updated if the test count or outcome changes before submission.
+
+---
+
+## Development Evidence
+
+The following evidence supports the development process but is not treated as functional test execution:
+
+| Evidence Area | Relevant Evidence |
 |---|---|
-| Core business workflows | Guest creation, room management, booking creation, cancellation, check-in and check-out are implemented and tested. |
-| Validation | Invalid dates, duplicate email addresses, overlapping bookings and maintenance-room booking prevention are implemented and tested. |
-| Frontend interaction | Room filtering, booking filtering, date validation and cancel confirmation are implemented using vanilla JavaScript. |
-| Documentation | Requirements, testing plan, manual test results, technical notes, development log, user guide, peer review and traceability matrix are documented. |
-| Testing evidence | Manual test results are linked to 25 screenshot references covering application functionality, development evidence and GitHub workflow evidence. |
-| Version control | GitHub pull request workflow, commit history and branch evidence are documented through screenshots. |
-| Future improvements | Guest editing, authentication, deployment, email confirmations and advanced reporting remain planned improvements. |
+| Project organisation | VS Code project-structure screenshot |
+| Backend implementation | `app.py`, `models.py`, `services/` |
+| Frontend implementation | `templates/`, `static/css/style.css`, `static/js/app.js` |
+| Version control | Git status, branches and commit history |
+| Pull-request workflow | GitHub pull-request and changed-files screenshots |
+| Documentation | `docs/`, `README.md` and report appendices |
+
+These items should remain in `docs/development-log.md` or the main report appendix rather than being assigned manual functional-test IDs.
 
 ---
 
-## Requirements Not Fully Covered
+## Outstanding Traceability Items
 
-| Requirement | Reason | Planned Action |
-|---|---|---|
-| UR10: Edit guest records | The current MVP supports adding and viewing guests but does not yet include a guest editing workflow. | Add an Edit Guest route, template and action button in a future branch. |
-| Authentication and role-based access | The current MVP is designed as a local staff-facing prototype without login roles. | Add receptionist, housekeeping and manager roles in a future release. |
-| Cloud deployment | The current version runs locally using Flask and SQLite. | Deploy to a cloud platform and use PostgreSQL for production-style hosting. |
-| Email or SMS confirmations | The current MVP does not integrate external communication APIs. | Add email or messaging API integration in a future extension. |
-| Advanced reporting | The dashboard provides operational summary data but not historical analytics charts. | Add occupancy and revenue reporting charts in a future iteration. |
+| Related Test or Requirement | Required Action |
+|---|---|
+| TC03 / UR1 | Capture or verify a successfully created guest appearing in the Guests list |
+| TC06 / UR2 | Complete the new-room creation test and record the resulting room |
+| TC07 / UR4 / SR7 | Link a controlled booking submission to its calculated total price |
+| TC11 / SR12 | Capture client-side validation before the form is submitted |
+| TC17 / UR4 / SR12 | Record both cancellation-confirmation outcomes |
+| TC18 / UR6 / UR7 | Compare dashboard totals directly with current records |
+| TC19 / NFR1 / NFR5 | Record reduced-width usability and responsiveness |
+| AT01 | Run `pytest -q` once more and retain the final terminal output |
+| UR10 | Retain guest editing as a future improvement |
 
 ---
 
-## Traceability Conclusion
+## Conclusion
 
-The traceability matrix shows that the current MVP covers the main operational requirements for the boutique hotel scenario. The strongest areas are room management, booking validation, check-in/check-out workflows, frontend filtering and documented testing evidence.
+The matrix demonstrates traceability from the project requirements to design, implementation, testing and evidence.
 
-The implemented system provides a working staff-facing application supported by manual test results, screenshot evidence, documentation and GitHub workflow evidence. The remaining gaps are realistic future improvements rather than blockers for the current MVP.
+The core room, booking, validation, filtering, check-in and check-out requirements are implemented. Some requirements remain partially covered because their final test evidence still needs to be completed or verified.
+
+Guest editing remains outside the current MVP. Authentication, role-based access, production deployment and advanced reporting are also retained as future improvements rather than current implementation requirements.

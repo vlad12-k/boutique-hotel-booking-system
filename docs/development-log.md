@@ -1,247 +1,610 @@
-## Project
-Boutique Hotel Booking and Room Management System
-
-## Purpose
-This log records the main development iterations completed during the project. It supports the Unit 36 development portfolio by showing how the application was planned, built, reviewed and improved over time.
-
----
-
-## Iteration 1: Initial Flask MVP
-
-### Goal
-Create the first working version of the staff-facing hotel booking and room management system.
-
-### Work completed
-- Created Flask application structure.
-- Added SQLite database configuration.
-- Added SQLAlchemy models for Guest, Room and Booking.
-- Seeded 10 hotel rooms.
-- Added dashboard page.
-- Added room management page.
-- Added guest management page.
-- Added booking management page.
-- Added booking creation workflow.
-- Added check-in and check-out actions.
-- Added room status update workflow.
-- Added double booking validation.
-
-### Outcome
-A working MVP was created and merged into the main branch. The application can run locally using `python app.py`.
-
----
-
-## Iteration 2: UI Polish and Vanilla JavaScript
-
-### Goal
-Improve the usability and visual presentation of the application while adding vanilla JavaScript frontend interactivity.
-
-### Work completed
-- Added `static/js/app.js`.
-- Added client-side booking date validation.
-- Added room status filtering.
-- Added booking status filtering.
-- Added confirmation before booking cancellation.
-- Improved dashboard layout.
-- Improved room and booking status presentation.
-- Improved tables, spacing, helper text and visual consistency.
-
-### Outcome
-The application became clearer and more suitable for staff use. Vanilla JavaScript was used without frontend frameworks such as React, Vue or Angular.
-
----
-
-## Iteration 3: Documentation and Testing Evidence
-
-### Goal
-Strengthen the project for academic submission and portfolio presentation.
-
-### Work planned
-- Create user guide.
-- Create technical notes.
-- Create test results template.
-- Create traceability matrix.
-- Record evidence for screenshots and testing.
-- Link implemented features to user and system requirements.
-
-### Outcome
-To be completed after testing and evidence collection. (See <attachments> above for file contents. You may not need to search or read the file again.)
-
-
 # Development Log
 
 ## Project
+
 Boutique Hotel Booking and Room Management System
 
-## Purpose
-This development log records the main development iterations completed during the project. It supports the Unit 36 development portfolio by showing how the application was planned, implemented, reviewed, improved and prepared for testing evidence.
+## Unit
 
-The log also demonstrates an iterative development approach: each stage added value to the previous version, reduced project risk and improved alignment with the original business problem.
+Unit 36: Application Development
+
+## Purpose
+
+This development log records the main stages completed during the design, implementation, testing and refinement of the Boutique Hotel Booking and Room Management System.
+
+It supports the Unit 36 development portfolio by demonstrating:
+
+- an iterative development process;
+- progression from requirements to implementation;
+- changes made in response to testing and review;
+- links between development work and project evidence;
+- reflection on the outcome of each iteration.
+
+The original Unit 36 project focused on guest, room and booking management. A later Unit 37 API-based housekeeping notification extension was added after the core application had been developed. That extension is identified separately in this log so that the scope of the two units remains clear.
 
 ---
 
 ## Development Approach
 
-The project followed a lightweight iterative methodology. This was suitable because the system is an academic prototype for a small boutique hotel and the requirements could be developed in short, controlled increments.
+The project followed a lightweight iterative development approach.
 
-Each iteration focused on a specific improvement area:
+This approach was appropriate because the application was an academic prototype for a small boutique hotel. The work could therefore be divided into controlled stages, with each iteration producing a usable improvement.
 
-1. building a working Flask MVP;
-2. improving usability and frontend interaction;
-3. strengthening documentation and testing evidence;
-4. preparing the project for portfolio presentation and final evaluation.
+The main development stages were:
 
-Git and GitHub were used to manage versions, branches and pull requests. This provided evidence of controlled development and allowed changes to be reviewed before being merged.
+1. requirements analysis and initial design;
+2. implementation of the Flask MVP;
+3. interface and usability improvements;
+4. code organisation and maintainability improvements;
+5. documentation and traceability;
+6. testing and correction;
+7. final evidence and portfolio preparation;
+8. later Unit 37 API extension.
+
+Git and GitHub were used for version control. Branches and pull requests supported controlled development and allowed changes to be reviewed before they were incorporated into the main project.
 
 ---
 
-## Iteration 1: Initial Flask MVP
+## Iteration 1: Requirements Analysis and Design
 
 ### Goal
-Create the first working version of the staff-facing hotel booking and room management system.
+
+Define the business problem, user requirements, system requirements, data structure and main operational workflows before completing the application.
 
 ### Work completed
+
+- Defined the business context for a 10-room boutique hotel.
+- Identified the main operational users:
+  - reception staff;
+  - housekeeping staff;
+  - hotel manager.
+- Defined the original Unit 36 MVP scope.
+- Identified functional and non-functional requirements.
+- Defined supported room statuses:
+  - Available;
+  - Occupied;
+  - Cleaning;
+  - Maintenance.
+- Defined supported booking statuses:
+  - Pending;
+  - Confirmed;
+  - Checked-in;
+  - Checked-out;
+  - Cancelled.
+- Designed the relationship between Guest, Room and Booking records.
+- Designed the booking validation workflow.
+- Designed the room and booking status lifecycles.
+- Selected Flask, SQLAlchemy, SQLite, Jinja2, Bootstrap and vanilla JavaScript as the main technologies.
+
+### Evidence
+
+- `docs/requirements.md`
+- `docs/design-diagrams.md`
+- `docs/technical-notes.md`
+
+### Outcome
+
+The project began with a defined scope and a relational design that matched the business problem.
+
+The requirements established that the system needed to:
+
+- manage guests;
+- manage rooms;
+- create and manage bookings;
+- prevent overlapping bookings;
+- prevent bookings for rooms under Maintenance;
+- coordinate check-in, check-out and room status updates;
+- provide operational information through a dashboard.
+
+### Reflection
+
+Completing the requirements and diagrams before finalising the implementation reduced the risk of adding unrelated features.
+
+The design also made it possible to connect later testing evidence directly to individual user and system requirements.
+
+---
+
+## Iteration 2: Initial Flask MVP
+
+### Goal
+
+Create the first working version of the staff-facing hotel booking and room management application.
+
+### Work completed
+
 - Created the Flask application structure.
-- Added SQLite database configuration.
-- Added SQLAlchemy models for Guest, Room and Booking.
+- Configured the local SQLite database.
+- Added Flask-SQLAlchemy.
+- Created the `Guest`, `Room` and `Booking` models.
 - Seeded 10 hotel rooms for demonstration and testing.
-- Added dashboard page.
-- Added room management page.
-- Added guest management page.
-- Added booking management page.
-- Added booking creation workflow.
+- Created the dashboard.
+- Created the rooms page.
+- Created the guests page.
+- Created the bookings page.
+- Created forms for adding:
+  - guests;
+  - rooms;
+  - bookings.
+- Added booking creation.
+- Added booking cancellation.
 - Added check-in and check-out actions.
-- Added room status update workflow.
-- Added double-booking validation for active bookings.
-- Added maintenance-room booking prevention.
-- Added basic documentation files.
+- Added manual room-status updates.
+- Added total-price calculation.
+- Added validation for required booking information.
+- Added validation to ensure that the check-out date is later than the check-in date.
+- Added overlapping-booking prevention.
+- Added prevention of bookings for rooms under Maintenance.
 
 ### Evidence
+
+Core files:
+
+- `app.py`
+- `models.py`
+- `templates/dashboard.html`
+- `templates/rooms.html`
+- `templates/guests.html`
+- `templates/bookings.html`
+- `templates/add_room.html`
+- `templates/add_guest.html`
+- `templates/add_booking.html`
+
+Version-control evidence:
+
 - GitHub branch: `copilot/create-boutique-hotel-app`
-- Local run command: `python app.py`
-- Main evidence: working Flask application and project structure
+- Git commit and pull-request history
+
+Local run command:
+
+```bash
+python app.py
+```
 
 ### Outcome
-A working MVP was created and merged into the main branch. The application could run locally and supported the core workflows required for the hotel scenario.
+
+A working MVP was produced.
+
+The application supported the principal hotel workflows:
+
+- creating guest records;
+- viewing rooms;
+- updating room status;
+- creating bookings;
+- preventing invalid bookings;
+- checking guests in;
+- checking guests out;
+- cancelling bookings;
+- viewing operational dashboard information.
 
 ### Reflection
-This iteration proved that the main business problem could be solved with a simple web application. However, the interface still needed usability improvements, stronger documentation and clearer testing evidence.
+
+This iteration demonstrated that Flask and SQLite were suitable for a local academic prototype.
+
+The initial version solved the core business problem, but the interface still required improved presentation, filtering and clearer user feedback.
 
 ---
 
-## Iteration 2: UI Polish and Vanilla JavaScript
+## Iteration 3: Interface and Vanilla JavaScript Improvements
 
 ### Goal
-Improve the usability and visual presentation of the application while adding frontend interactivity using vanilla JavaScript.
+
+Improve usability and visual consistency without introducing a large frontend framework.
 
 ### Work completed
+
 - Added `static/js/app.js`.
-- Added client-side booking date validation.
-- Added room status filtering.
-- Added booking status filtering.
+- Added client-side booking-date validation.
+- Added room-status filtering.
+- Added booking-status filtering.
 - Added confirmation before booking cancellation.
-- Improved dashboard layout.
-- Improved room and booking status presentation.
-- Improved tables, spacing, helper text and visual consistency.
-- Avoided frontend frameworks such as React, Vue and Angular.
+- Improved the dashboard layout.
+- Improved table presentation.
+- Added clearer status presentation.
+- Improved spacing and helper text.
+- Improved form presentation.
+- Refined `static/css/style.css`.
+- Maintained a lightweight server-rendered architecture.
+- Avoided unnecessary frontend frameworks such as React, Vue or Angular.
 
 ### Evidence
-- File: `static/js/app.js`
-- Files: `templates/rooms.html`, `templates/bookings.html`, `templates/add_booking.html`
-- Expected screenshots: room filter, booking filter and booking-date validation
+
+Implementation files:
+
+- `static/js/app.js`
+- `static/css/style.css`
+- `templates/base.html`
+- `templates/rooms.html`
+- `templates/bookings.html`
+- `templates/add_booking.html`
+
+Screenshot evidence:
+
+- `screenshots/01-dashboard.png`
+- `screenshots/02-rooms-page.png`
+- `screenshots/04-room-filter.png`
+- `screenshots/05-guests-page.png`
+- `screenshots/09-add-booking-form.png`
+- `screenshots/13-bookings-page.png`
+- `screenshots/14-booking-filter.png`
 
 ### Outcome
-The application became clearer and more suitable for staff use. The system remained lightweight because vanilla JavaScript was used instead of a frontend framework.
+
+The interface became clearer and more appropriate for non-technical hotel staff.
+
+Room and booking filters allowed staff to locate relevant records more quickly. Client-side validation improved usability by identifying some invalid input before the form was submitted.
+
+Server-side validation remained the authoritative protection because browser-side JavaScript can be bypassed.
 
 ### Reflection
-This iteration improved user experience, but the project still required stronger evidence for academic submission, including a traceability matrix, test template, user guide and technical notes.
+
+Vanilla JavaScript was sufficient for the required interactions.
+
+Using a larger frontend framework would have increased project complexity without providing a necessary benefit for the MVP.
 
 ---
 
-## Iteration 3: Documentation and Testing Evidence
+## Iteration 4: Code Organisation and Maintainability
 
 ### Goal
-Strengthen the project for academic submission, testing evidence and portfolio presentation.
+
+Improve the organisation of reusable application logic and make important workflows easier to test.
 
 ### Work completed
-- Created a development log.
-- Created a user guide.
-- Created technical notes.
-- Created a manual test results template.
-- Created a requirement traceability matrix.
-- Linked implemented features to user and system requirements.
-- Prepared the structure for screenshot evidence.
+
+- Added a `services/` package.
+- Added `services/__init__.py`.
+- Added `services/booking_service.py`.
+- Moved reusable booking-related logic into a service module where appropriate.
+- Retained Flask routes as the coordinators of browser requests, rendered templates and application workflows.
+- Added a separate `tests/` folder.
+- Added shared pytest configuration in `tests/conftest.py`.
 
 ### Evidence
-- File: `docs/development-log.md`
-- File: `docs/user-guide.md`
-- File: `docs/technical-notes.md`
-- File: `docs/test-results-template.md`
-- File: `docs/traceability-matrix.md`
+
+- `services/__init__.py`
+- `services/booking_service.py`
+- `tests/conftest.py`
+- `tests/test_booking_service.py`
 
 ### Outcome
-The project became easier to evaluate because the development process, system features, testing plan and requirement coverage were documented.
+
+The project structure became clearer by separating:
+
+- database models;
+- Flask routes;
+- templates;
+- static resources;
+- reusable service logic;
+- automated tests.
+
+This improved maintainability and made important booking behaviour easier to verify independently.
 
 ### Reflection
-This iteration is important for Unit 36 because the assignment assesses not only the final application but also the design, development process, support documentation, testing evidence and evaluation against requirements.
+
+Not every part of a small Flask prototype needs to be moved into a separate service.
+
+The final structure therefore remains lightweight: Flask routes coordinate the web workflow, while reusable or independently testable logic can be placed in service modules.
 
 ---
 
-## Iteration 4: Planned Portfolio UI Polish
+## Iteration 5: Documentation and Traceability
 
 ### Goal
-Make the web application more visually professional and suitable for portfolio demonstration.
 
-### Planned work
-- Improve the shared page layout in `templates/base.html`.
-- Improve the dashboard presentation.
-- Improve table styling and status badges.
-- Improve form pages for better usability.
-- Refine `static/css/style.css` for a more polished visual identity.
-- Ensure all pages look consistent and staff-friendly.
+Create complete development, design, testing and user-support evidence for academic evaluation.
 
-### Expected evidence
-- Screenshot of dashboard.
-- Screenshot of rooms page.
-- Screenshot of bookings page.
-- Screenshot of guest management page.
-- Screenshot of add-booking workflow.
+### Work completed
 
-### Expected outcome
-The application should look like a clean internal operations system rather than a basic classroom prototype.
+- Expanded the requirements specification.
+- Created the application design diagrams.
+- Created the development log.
+- Created technical notes.
+- Created the testing plan.
+- Created the manual test-results document.
+- Created the requirements traceability matrix.
+- Created the user guide.
+- Created peer-review evidence.
+- Organised screenshot evidence.
+- Linked requirements to implementation and testing evidence.
+- Distinguished the original Unit 36 application from the later Unit 37 API extension.
+
+### Evidence
+
+- `docs/requirements.md`
+- `docs/design-diagrams.md`
+- `docs/development-log.md`
+- `docs/technical-notes.md`
+- `docs/testing-plan.md`
+- `docs/test-results-template.md`
+- `docs/traceability-matrix.md`
+- `docs/user-guide.md`
+- `docs/peer-review.md`
+- `screenshots/`
+
+### Outcome
+
+The project became easier to evaluate because the design, implementation, requirements, testing and user guidance were recorded in separate documents.
+
+The documentation also improved portfolio value because another developer or assessor can understand:
+
+- why the system was created;
+- how it is structured;
+- how its main workflows operate;
+- how it was tested;
+- which improvements remain outside the MVP.
+
+### Reflection
+
+The first version of the documentation contained some repeated information and several sections still described completed work as planned.
+
+The documentation was therefore reviewed and updated to reflect the final implementation rather than the earlier development state.
 
 ---
 
-## Iteration 5: Planned Functional Improvement
+## Iteration 6: Testing and Correction
 
 ### Goal
-Improve the system functionality by adding guest editing.
 
-### Planned work
-- Add an Edit Guest route in `app.py`.
-- Add an `edit_guest.html` template.
-- Add an Edit button to the Guests page.
-- Reuse existing backend validation for guest email addresses.
-- Update the user guide and traceability matrix.
+Verify that the core workflows and later notification-related components behaved as expected without breaking the original booking application.
 
-### Reason
-The current system allows staff to add and view guest records. Adding edit functionality would make guest management more complete and would strengthen the requirement coverage for guest record management.
+### Testing completed
+
+Testing included:
+
+- manual interface testing;
+- booking-validation testing;
+- room-status testing;
+- booking-status testing;
+- automated unit testing;
+- automated workflow testing;
+- notification-service testing;
+- Telegram command-validation testing.
+
+Automated test files include:
+
+- `tests/test_booking_service.py`
+- `tests/test_checkout_notifications.py`
+- `tests/test_notification_service.py`
+- `tests/test_telegram_command_service.py`
+
+The recorded final pytest run reported:
+
+```text
+34 passed
+```
+
+### Main behaviours tested
+
+- valid booking creation;
+- invalid date rejection;
+- overlapping-booking prevention;
+- Maintenance-room restriction;
+- total-price calculation;
+- check-in status transition;
+- check-out status transition;
+- room status changes;
+- notification workflow outcomes;
+- Telegram staff-command validation;
+- handling of unsuccessful notification delivery.
+
+### Evidence
+
+- `tests/`
+- `docs/testing-plan.md`
+- `docs/test-results-template.md`
+- `docs/traceability-matrix.md`
+- terminal pytest output
+- application screenshots
+
+Test command:
+
+```bash
+pytest -q
+```
+
+### Outcome
+
+The automated test suite completed successfully in the recorded final run.
+
+Testing provided evidence that the principal business rules worked and that the later notification extension did not remove the original booking functionality.
+
+### Reflection
+
+Automated testing was particularly valuable for business rules that could produce operational problems if implemented incorrectly, such as:
+
+- overlapping bookings;
+- invalid status transitions;
+- incorrect room status;
+- unsuccessful notification handling.
+
+Manual testing remained necessary for visual layout, form usability, filtering and end-to-end staff interaction.
 
 ---
 
-## Summary of Development Progress
+## Iteration 7: Final UI and Evidence Preparation
+
+### Goal
+
+Prepare the application for final academic submission and portfolio demonstration.
+
+### Work completed
+
+- Reviewed the shared page layout.
+- Improved dashboard presentation.
+- Improved table consistency.
+- Improved room and booking status badges.
+- Improved form usability.
+- Captured the main application pages.
+- Captured room-filter evidence.
+- Captured booking-filter evidence.
+- Reviewed documentation against the implemented project structure.
+- Removed outdated planned-work statements from completed documentation.
+- Separated Unit 36 evidence from Unit 37 API evidence.
+
+### Evidence
+
+- `screenshots/01-dashboard.png`
+- `screenshots/02-rooms-page.png`
+- `screenshots/04-room-filter.png`
+- `screenshots/05-guests-page.png`
+- `screenshots/09-add-booking-form.png`
+- `screenshots/13-bookings-page.png`
+- `screenshots/14-booking-filter.png`
+
+### Outcome
+
+The application was presented as a coherent internal hotel operations system rather than only as an unfinished classroom prototype.
+
+The screenshots, documentation and test evidence provide a clear record of the implemented functionality.
+
+### Reflection
+
+Visual presentation is important for usability and portfolio value, but it must not replace functional correctness.
+
+The final work therefore balanced:
+
+- interface quality;
+- validation;
+- maintainable structure;
+- test evidence;
+- documentation quality.
+
+---
+
+## Iteration 8: Separate Unit 37 API Extension
+
+### Scope clarification
+
+This iteration was completed after the original Unit 36 booking application and belongs primarily to Unit 37: Application Program Interfaces.
+
+It is recorded here only to explain how the repository developed beyond the original MVP.
+
+### Goal
+
+Extend the check-out workflow with an API-based housekeeping notification process.
+
+### Work completed
+
+- Added Telegram housekeeping notifications.
+- Added email fallback support.
+- Added notification delivery logging.
+- Added a notification records page.
+- Added a Telegram staff-command worker.
+- Added command validation.
+- Added environment-variable configuration.
+- Added automated tests for notification and command workflows.
+- Added separate API, security and workflow documentation.
+
+### Evidence
+
+Implementation files:
+
+- `telegram_bot_worker.py`
+- `services/email_service.py`
+- `services/notification_service.py`
+- `services/telegram_service.py`
+- `services/telegram_command_service.py`
+- `templates/notifications.html`
+
+Unit 37 documentation:
+
+- `docs/api-design-diagrams.md`
+- `docs/api-integration-overview.md`
+- `docs/data-security-report.md`
+- `docs/email-notification-workflow.md`
+- `docs/notification-workflow-design.md`
+- `docs/telegram-staff-bot-workflow.md`
+
+### Outcome
+
+The original booking system was extended with an automated housekeeping communication workflow while retaining the Unit 36 guest, room and booking functionality.
+
+### Reflection
+
+Keeping the API extension separate from the original application design makes the evidence easier to assess.
+
+It shows progression from:
+
+1. a working hotel management application;
+2. to a system integrated with external communication services.
+
+---
+
+## Development Progress Summary
 
 | Iteration | Focus | Status |
 |---|---|---|
-| Iteration 1 | Flask MVP | Completed |
-| Iteration 2 | UI polish and vanilla JavaScript | Completed / being refined |
-| Iteration 3 | Documentation and testing evidence | In progress |
-| Iteration 4 | Portfolio UI polish | Planned |
-| Iteration 5 | Guest editing workflow | Planned |
+| Iteration 1 | Requirements analysis and design | Completed |
+| Iteration 2 | Initial Flask MVP | Completed |
+| Iteration 3 | UI and vanilla JavaScript improvements | Completed |
+| Iteration 4 | Code organisation and maintainability | Completed |
+| Iteration 5 | Documentation and traceability | Completed |
+| Iteration 6 | Testing and correction | Completed |
+| Iteration 7 | Final UI and evidence preparation | Completed |
+| Iteration 8 | Separate Unit 37 API extension | Completed |
 
 ---
 
 ## Current Project Status
 
-The project currently has a working Flask MVP with room, guest and booking management. The next priority is to finish the documentation branch, test the frontend filtering behaviour, improve the visual design and then add one functional improvement such as guest editing.
+The project currently includes a working Flask application with:
 
-This staged approach helps keep the project stable while still improving the quality of the final submission and portfolio presentation.
+- guest management;
+- room management;
+- booking management;
+- booking validation;
+- check-in and check-out;
+- room status tracking;
+- dashboard information;
+- frontend filtering;
+- responsive presentation;
+- automated testing;
+- supporting documentation;
+- a separate API-based housekeeping notification extension.
+
+The original Unit 36 MVP is complete for academic demonstration.
+
+Guest record editing remains a possible future enhancement rather than an unfinished core requirement.
+
+---
+
+## Future Improvements
+
+Possible future development includes:
+
+- authenticated user accounts;
+- role-based access control;
+- editing existing guest records;
+- a customer self-booking portal;
+- online payment processing;
+- production deployment;
+- PostgreSQL or another production database;
+- automated backups;
+- advanced revenue and occupancy reporting;
+- assignment of housekeeping tasks to named employees;
+- expanded audit logging;
+- broader browser and device testing.
+
+These improvements are outside the completed academic MVP and do not prevent the current application from demonstrating the required Unit 36 functionality.
+
+---
+
+## Final Reflection
+
+The iterative approach allowed the project to progress from a basic Flask prototype to a documented and tested hotel operations application.
+
+The strongest aspects of the final project are:
+
+- clear alignment with the hotel business problem;
+- relational Guest, Room and Booking data;
+- backend validation;
+- overlap prevention;
+- coordinated booking and room status updates;
+- practical staff-facing interface;
+- requirements traceability;
+- automated testing;
+- separation between the Unit 36 application and Unit 37 API extension.
+
+The main limitation is that the application remains a local academic prototype without authentication, production deployment or advanced operational reporting.
+
+However, within the defined MVP scope, the project successfully demonstrates planning, application design, implementation, testing, documentation and iterative improvement.

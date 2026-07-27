@@ -1,34 +1,16 @@
-# Requirements
-
-## User Requirements
-- Staff can add and view guest records with contact details.
-- Staff can add rooms and update room status.
-- Staff can create and manage bookings.
-- Staff can check guests in and out.
-- Staff can see room availability and booking activity from a dashboard.
-
-## System Requirements
-- Python Flask web application.
-- Flask-SQLAlchemy ORM.
-- SQLite database.
-- Jinja2 template rendering.
-- Bootstrap responsive interface.
-- Booking validation for required fields, valid date ranges and overlap prevention.
-
-## MVP Scope
-- Single staff-facing interface (no authentication in MVP).
-- Management of 10 seeded rooms.
-- Guest, room and booking CRUD-lite workflows.
-- Booking status workflow: Pending, Confirmed, Checked-in, Checked-out, Cancelled.
-- Room status workflow: Available, Occupied, Cleaning, Maintenance.
-
 # Requirements Specification
 
 ## Project
+
 Boutique Hotel Booking and Room Management System
 
 ## Purpose
-This document defines the user requirements, system requirements and MVP scope for the hotel booking and room management application. It supports the Unit 36 design and development evidence by showing what the application is expected to achieve and how the implemented features relate to the original business problem.
+
+This document defines the user requirements, system requirements, functional requirements, non-functional requirements and MVP scope for the boutique hotel booking and room management application.
+
+The document supports the Unit 36 design and development evidence by showing what the application was expected to achieve and how the implemented features address the original business problem.
+
+The repository also contains a completed Unit 37 API-based housekeeping notification extension. That extension is identified separately so that it does not alter the original Unit 36 MVP scope.
 
 ---
 
@@ -36,15 +18,15 @@ This document defines the user requirements, system requirements and MVP scope f
 
 The client is a small boutique hotel with 10 rooms. The hotel requires a simple internal web application to help staff manage guests, rooms and bookings more reliably than a paper-based or spreadsheet-based process.
 
-The main operational problem is that manual booking and room tracking can lead to:
+Manual booking and room tracking can lead to:
 
 - double bookings;
 - unclear room availability;
 - delayed room status updates;
 - poor coordination between reception and housekeeping;
-- limited visibility for managers.
+- limited visibility for hotel managers.
 
-The proposed system is a staff-facing web application that allows reception staff and managers to manage daily hotel operations from one place.
+The proposed solution is a staff-facing web application that allows hotel staff to manage daily operations from one place.
 
 ---
 
@@ -52,11 +34,13 @@ The proposed system is a staff-facing web application that allows reception staf
 
 | User Role | Description | Main Needs |
 |---|---|---|
-| Reception Staff | Staff responsible for guests, bookings, check-ins and check-outs | Create guest records, create bookings, check guests in and out, view availability |
-| Housekeeping Staff | Staff responsible for room readiness | View and update room status such as Cleaning, Maintenance and Available |
-| Hotel Manager | Person responsible for operational oversight | View dashboard summary, monitor bookings and room activity |
+| Reception Staff | Staff responsible for guests, bookings, check-ins and check-outs | Create guest records, create bookings, check guests in and out, and view room availability |
+| Housekeeping Staff | Staff responsible for room readiness | View room information and update operational room status |
+| Hotel Manager | Person responsible for operational oversight | View dashboard summaries and monitor booking and room activity |
 
-The MVP uses a single staff-facing interface and does not include role-based authentication. Role separation is identified as a future improvement.
+The MVP uses a single staff-facing interface and does not include authentication or technical role-based access control. The roles describe expected operational users rather than separate authenticated account types.
+
+Role-based authentication and permissions are identified as future improvements.
 
 ---
 
@@ -69,11 +53,11 @@ The MVP uses a single staff-facing interface and does not include role-based aut
 | UR3 | Staff must be able to update room status. | High | Implemented |
 | UR4 | Staff must be able to create and manage bookings. | High | Implemented |
 | UR5 | Staff must be able to check guests in and out. | High | Implemented |
-| UR6 | Staff must be able to see room availability from a dashboard and rooms page. | High | Implemented |
+| UR6 | Staff must be able to see room availability from the dashboard and rooms page. | High | Implemented |
 | UR7 | Managers must be able to view booking activity and room status summaries. | Medium | Implemented |
 | UR8 | Staff should be able to filter rooms and bookings by status. | Medium | Implemented |
 | UR9 | Staff should receive clear validation feedback when booking data is invalid. | High | Implemented |
-| UR10 | Staff should be able to edit guest records if contact details are entered incorrectly. | Medium | Planned improvement |
+| UR10 | Staff should be able to edit guest records when contact details are entered incorrectly. | Medium | Planned improvement |
 
 ---
 
@@ -82,18 +66,18 @@ The MVP uses a single staff-facing interface and does not include role-based aut
 | ID | Requirement | Implementation Evidence | Status |
 |---|---|---|---|
 | SR1 | The system shall be implemented as a Python Flask web application. | `app.py` | Implemented |
-| SR2 | The system shall use Flask-SQLAlchemy as the ORM. | `models.py` | Implemented |
-| SR3 | The system shall use SQLite as the local development database. | Flask configuration in `app.py` | Implemented |
-| SR4 | The system shall use Jinja2 templates for server-side rendering. | `templates/` folder | Implemented |
-| SR5 | The system shall use Bootstrap and custom CSS for a responsive interface. | `templates/base.html`, `static/css/style.css` | Implemented |
-| SR6 | The system shall store Guest, Room and Booking records. | `Guest`, `Room`, `Booking` models | Implemented |
-| SR7 | The system shall validate required booking fields. | Booking route validation | Implemented |
-| SR8 | The system shall validate that check-out date is after check-in date. | Backend validation and `static/js/app.js` | Implemented |
-| SR9 | The system shall prevent overlapping active bookings for the same room. | Booking overlap query in `app.py` | Implemented |
-| SR10 | The system shall prevent bookings for rooms under Maintenance. | Booking validation in `app.py` | Implemented |
-| SR11 | The system shall update room status after check-in and check-out. | Check-in/check-out routes | Implemented |
+| SR2 | The system shall use Flask-SQLAlchemy as the object-relational mapper. | `models.py` | Implemented |
+| SR3 | The system shall use SQLite as the local development database. | Flask database configuration | Implemented |
+| SR4 | The system shall use Jinja2 templates for server-side page rendering. | `templates/` | Implemented |
+| SR5 | The system shall use Bootstrap and custom CSS to provide a responsive interface. | `templates/base.html`, `static/css/style.css` | Implemented |
+| SR6 | The system shall store Guest, Room and Booking records. | `Guest`, `Room` and `Booking` models | Implemented |
+| SR7 | The system shall validate required booking fields. | Booking creation workflow | Implemented |
+| SR8 | The system shall validate that the check-out date is later than the check-in date. | Backend validation and `static/js/app.js` | Implemented |
+| SR9 | The system shall prevent overlapping active bookings for the same room. | Booking overlap validation | Implemented |
+| SR10 | The system shall prevent new bookings for rooms under Maintenance. | Booking validation workflow | Implemented |
+| SR11 | The system shall update room status during check-in and check-out workflows. | Check-in and check-out workflows | Implemented |
 | SR12 | The system shall use vanilla JavaScript for lightweight frontend interaction. | `static/js/app.js` | Implemented |
-| SR13 | The system shall include documentation and testing evidence. | `docs/` folder | In progress |
+| SR13 | The system shall include supporting documentation and testing evidence. | `docs/`, `tests/` and `screenshots/` | Implemented |
 
 ---
 
@@ -105,23 +89,21 @@ The system must allow staff to:
 
 - create a guest record;
 - view existing guest records;
-- store guest full name, email address, phone number and notes;
-- validate basic guest email format.
+- store the guest's full name, email address, phone number and notes;
+- validate the basic format of the guest email address.
 
-Planned improvement:
-
-- edit existing guest records.
+Editing existing guest records remains a planned improvement.
 
 ### Room Management
 
 The system must allow staff to:
 
-- view seeded rooms;
+- view the seeded hotel rooms;
 - add a new room;
-- view room number, type, price and status;
+- view room number, room type, price and status;
 - update room status.
 
-Supported room statuses:
+Supported room statuses are:
 
 - Available;
 - Occupied;
@@ -133,16 +115,16 @@ Supported room statuses:
 The system must allow staff to:
 
 - create a booking;
-- view bookings;
-- cancel bookings;
-- check guests in;
-- check guests out;
-- calculate total price based on room price and number of nights;
+- view existing bookings;
+- cancel a booking;
+- check a guest in;
+- check a guest out;
+- calculate the total price using the room price and number of nights;
 - prevent invalid date ranges;
 - prevent overlapping active bookings;
 - prevent bookings for rooms in Maintenance status.
 
-Supported booking statuses:
+Supported booking statuses are:
 
 - Pending;
 - Confirmed;
@@ -170,7 +152,7 @@ The system should use vanilla JavaScript to improve usability by supporting:
 - room status filtering;
 - booking status filtering;
 - booking date validation before form submission;
-- cancellation confirmation.
+- booking cancellation confirmation.
 
 ---
 
@@ -178,70 +160,127 @@ The system should use vanilla JavaScript to improve usability by supporting:
 
 | ID | Requirement | Explanation |
 |---|---|---|
-| NFR1 | Usability | The interface should be simple enough for non-technical hotel staff. |
-| NFR2 | Maintainability | The code should use a clear Flask project structure with separate templates, static files and models. |
-| NFR3 | Reliability | The system should reduce double-booking risk through backend validation. |
+| NFR1 | Usability | The interface should be simple enough for non-technical hotel staff to understand and operate. |
+| NFR2 | Maintainability | The project should use a clear structure with separate models, services, templates, static files and tests. |
+| NFR3 | Reliability | The system should reduce double-booking risk through server-side validation. |
 | NFR4 | Portability | The application should run locally using Python, Flask and SQLite. |
 | NFR5 | Responsiveness | The interface should work reasonably well on common laptop and tablet screen sizes. |
-| NFR6 | Data minimisation | The MVP should only store operationally necessary guest and booking data. |
+| NFR6 | Data minimisation | The application should store only guest and booking information required for hotel operations. |
+| NFR7 | Testability | Important booking, status-transition and notification logic should be capable of automated testing. |
+| NFR8 | Security | Credentials and external API configuration must not be hard-coded in source-controlled files. |
 
 ---
 
-## MVP Scope
+## Original Unit 36 MVP Scope
 
-The MVP includes:
+The original Unit 36 MVP includes:
 
-- single staff-facing interface;
+- a single staff-facing interface;
 - 10 seeded hotel rooms;
 - guest creation and viewing;
 - room creation and status updates;
 - booking creation and viewing;
-- check-in and check-out workflow;
+- check-in and check-out workflows;
 - booking cancellation;
-- dashboard summary;
+- dashboard summaries;
 - room and booking filters;
 - server-side booking validation;
 - basic frontend validation using vanilla JavaScript;
-- support documentation and testing templates.
+- supporting documentation;
+- manual and automated testing evidence.
 
 ---
 
-## Out of Scope for MVP
+## Unit 37 API Extension
 
-The following features are not included in the MVP but are suitable for future development:
+Following completion of the original booking system, the project was extended for Unit 37 with an API-based housekeeping notification workflow.
 
-- role-based authentication;
-- customer self-booking portal;
-- online payments;
-- email or SMS booking confirmations;
-- cloud deployment;
-- PostgreSQL production database;
-- automated backups;
-- audit logs;
+The implemented extension includes:
+
+| ID | Extension Requirement | Status |
+|---|---|---|
+| ER1 | Checking out a guest must update the booking and place the room into a cleaning-related operational state. | Implemented |
+| ER2 | The system must attempt to send a housekeeping notification through Telegram. | Implemented |
+| ER3 | The system must support an email fallback when the primary notification cannot be delivered. | Implemented |
+| ER4 | The system must record notification delivery information in a notification log. | Implemented |
+| ER5 | Staff must be able to view notification records through the application interface. | Implemented |
+| ER6 | The project must support validated staff commands through the Telegram bot workflow. | Implemented |
+| ER7 | External API credentials must be loaded through environment variables rather than hard-coded into the application. | Implemented |
+
+The Unit 37 extension is documented separately in:
+
+- `api-integration-overview.md`;
+- `api-design-diagrams.md`;
+- `notification-workflow-design.md`;
+- `email-notification-workflow.md`;
+- `telegram-staff-bot-workflow.md`;
+- `data-security-report.md`.
+
+---
+
+## Out of Scope
+
+The following features are not included in the current completed application:
+
+- authenticated user accounts;
+- role-based access control;
+- a customer self-booking portal;
+- online payment processing;
+- customer-facing email or SMS booking confirmations;
+- cloud production deployment;
+- a PostgreSQL production database;
+- automated database backups;
+- a complete system-wide audit trail;
 - advanced reporting and revenue analytics;
-- housekeeping task assignment.
+- assignment of housekeeping tasks to named individual employees.
+
+The implemented notification log records housekeeping notification activity but is not intended to provide a complete system-wide audit trail.
 
 ---
 
 ## Assumptions
 
-- The hotel has 10 rooms.
-- The system is used internally by staff, not directly by customers.
-- The MVP is designed for local academic demonstration rather than production deployment.
-- SQLite is acceptable for the prototype stage.
-- The application will be evaluated through manual testing, screenshots and documentation evidence.
+- The hotel initially operates with 10 rooms.
+- The application is used internally by hotel staff rather than directly by customers.
+- The project is designed primarily for local academic demonstration.
+- SQLite is suitable for the prototype and academic assessment stage.
+- Staff using the MVP are trusted internal users.
+- The application will be evaluated using functional testing, automated tests, screenshots and supporting documentation.
+
+---
+
+## Constraints
+
+- The application is a local prototype rather than a production hotel management platform.
+- The MVP does not include authenticated user accounts.
+- SQLite has limited suitability for concurrent production use.
+- External notifications depend on valid API credentials and internet connectivity.
+- The system does not process online payments.
+- The system stores only the limited guest information required for the demonstrated workflows.
 
 ---
 
 ## Success Criteria
 
-The project will be considered successful if:
+The Unit 36 booking and room management system will be considered successful if:
 
-- staff can create guests, rooms and bookings;
+- staff can create guest, room and booking records;
 - the system prevents overlapping active bookings;
+- bookings cannot be created with invalid date ranges;
+- bookings cannot be created for rooms in Maintenance status;
 - staff can check guests in and out;
 - room status changes correctly during the booking workflow;
 - dashboard information supports daily operational decisions;
 - validation messages are clear;
-- the system is documented and tested against the requirements;
-- the final application is presentable for academic submission and portfolio use.
+- the application is documented and tested;
+- the application is presentable for academic submission and portfolio use.
+
+The Unit 37 extension will be considered successful if:
+
+- check-out can trigger the housekeeping notification workflow;
+- Telegram notification delivery is attempted;
+- email fallback is available when required;
+- notification outcomes are recorded;
+- staff Telegram commands are validated;
+- API credentials remain outside committed source code;
+- the original Unit 36 booking functionality continues to operate.

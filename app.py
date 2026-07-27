@@ -1,10 +1,10 @@
 import os
 import re
-from functools import wraps
 from datetime import date, datetime
+from functools import wraps
 
-from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
 from dotenv import load_dotenv
+from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
 
 from models import (
     ACTIVE_BOOKING_STATUSES,
@@ -21,6 +21,12 @@ from models import (
 load_dotenv()
 
 
+from services.booking_service import (
+    BookingServiceError,
+    cancel_booking as cancel_booking_service,
+    check_in_booking as check_in_booking_service,
+    create_booking,
+)
 from services.notification_service import (
     send_housekeeping_notification,
     send_room_ready_notification,
@@ -74,7 +80,14 @@ def render_add_booking_form(guests_list, rooms_list):
 
 def create_app():
     app = Flask(__name__)
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key-for-academic-prototype")
+    secret_key = os.getenv("SECRET_KEY")
+
+    if not secret_key:
+        raise RuntimeError(
+            "SECRET_KEY must be set in the environment before the application starts."
+        )
+
+    app.config["SECRET_KEY"] = secret_key
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///hotel.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -93,9 +106,15 @@ def seed_rooms():
         return
 
     rooms = [
-        Room(room_number=number, room_type=room_type, price_per_night=price, status="Available")
+        Room(
+            room_number=number,
+            room_type=room_type,
+            price_per_night=price,
+            status="Available",
+        )
         for number, room_type, price in DEFAULT_ROOMS
     ]
+
     db.session.add_all(rooms)
     db.session.commit()
 
@@ -111,6 +130,7 @@ def register_routes(app):
     @app.route("/")
     def dashboard():
         today = date.today()
+
         total_rooms = Room.query.count()
         available_rooms = Room.query.filter_by(status="Available").count()
         occupied_rooms = Room.query.filter_by(status="Occupied").count()
@@ -118,10 +138,14 @@ def register_routes(app):
         maintenance_rooms = Room.query.filter_by(status="Maintenance").count()
 
         todays_check_ins = (
-            Booking.query.filter(Booking.check_in_date == today, Booking.status.in_(ACTIVE_BOOKING_STATUSES))
+            Booking.query.filter(
+                Booking.check_in_date == today,
+                Booking.status.in_(ACTIVE_BOOKING_STATUSES),
+            )
             .order_by(Booking.check_in_date.asc())
             .all()
         )
+
         todays_check_outs = (
             Booking.query.filter(
                 Booking.check_out_date == today,
@@ -130,7 +154,10 @@ def register_routes(app):
             .order_by(Booking.check_out_date.asc())
             .all()
         )
-        recent_bookings = Booking.query.order_by(Booking.created_at.desc()).limit(5).all()
+
+        recent_bookings = (
+            Booking.query.order_by(Booking.created_at.desc()).limit(5).all()
+        )
 
         return render_template(
             "dashboard.html",
@@ -146,7 +173,13 @@ def register_routes(app):
 
     @app.route("/rooms")
     def rooms():
-        return render_template("rooms.html", rooms=Room.query.order_by(Room.room_number.asc()).all(), room_statuses=ROOM_STATUSES)
+        rooms_list = Room.query.order_by(Room.room_number.asc()).all()
+
+        return render_template(
+            "rooms.html",
+            rooms=rooms_list,
+            room_statuses=ROOM_STATUSES,
+        )
 
     @app.route("/rooms/add", methods=["GET", "POST"])
     def add_room():
@@ -157,24 +190,43 @@ def register_routes(app):
             status = request.form.get("status", "Available").strip()
 
             if not room_number or not room_type or not price_per_night:
-                flash("Room number, room type and price are required.", "danger")
-                return render_template("add_room.html", room_statuses=ROOM_STATUSES)
+                flash(
+                    "Room number, room type and price are required.",
+                    "danger",
+                )
+                return render_template(
+                    "add_room.html",
+                    room_statuses=ROOM_STATUSES,
+                )
 
             try:
                 price_value = float(price_per_night)
+
                 if price_value <= 0:
                     raise ValueError
             except ValueError:
-                flash("Price per night must be a positive number.", "danger")
-                return render_template("add_room.html", room_statuses=ROOM_STATUSES)
+                flash(
+                    "Price per night must be a positive number.",
+                    "danger",
+                )
+                return render_template(
+                    "add_room.html",
+                    room_statuses=ROOM_STATUSES,
+                )
 
             if status not in ROOM_STATUSES:
                 flash("Invalid room status.", "danger")
-                return render_template("add_room.html", room_statuses=ROOM_STATUSES)
+                return render_template(
+                    "add_room.html",
+                    room_statuses=ROOM_STATUSES,
+                )
 
             if Room.query.filter_by(room_number=room_number).first():
                 flash("Room number already exists.", "danger")
-                return render_template("add_room.html", room_statuses=ROOM_STATUSES)
+                return render_template(
+                    "add_room.html",
+                    room_statuses=ROOM_STATUSES,
+                )
 
             db.session.add(
                 Room(
@@ -184,11 +236,15 @@ def register_routes(app):
                     status=status,
                 )
             )
+
             db.session.commit()
             flash("Room added successfully.", "success")
             return redirect(url_for("rooms"))
 
-        return render_template("add_room.html", room_statuses=ROOM_STATUSES)
+        return render_template(
+            "add_room.html",
+            room_statuses=ROOM_STATUSES,
+        )
 
     @app.post("/rooms/<int:room_id>/status")
     def update_room_status(room_id):
@@ -204,6 +260,7 @@ def register_routes(app):
 
         if previous_status == "Cleaning" and status == "Available":
             notification_result = send_room_ready_notification(room)
+
             notification_log = NotificationLog(
                 room_id=room.id,
                 booking_id=None,
@@ -212,16 +269,20 @@ def register_routes(app):
                 message=notification_result["message"],
                 error_message=notification_result["error"],
             )
+
             db.session.add(notification_log)
 
             if notification_result["success"]:
                 flash(
-                    f"Room status updated to Available. Room-ready notification sent via {notification_result['channel']}.",
+                    f"Room status updated to Available. "
+                    f"Room-ready notification sent via "
+                    f"{notification_result['channel']}.",
                     "success",
                 )
             else:
                 flash(
-                    "Room status updated to Available, but the room-ready notification failed. Check notification logs.",
+                    "Room status updated to Available, but the room-ready "
+                    "notification failed. Check notification logs.",
                     "warning",
                 )
         else:
@@ -232,7 +293,12 @@ def register_routes(app):
 
     @app.route("/guests")
     def guests():
-        return render_template("guests.html", guests=Guest.query.order_by(Guest.full_name.asc()).all())
+        guests_list = Guest.query.order_by(Guest.full_name.asc()).all()
+
+        return render_template(
+            "guests.html",
+            guests=guests_list,
+        )
 
     @app.route("/guests/add", methods=["GET", "POST"])
     def add_guest():
@@ -243,20 +309,37 @@ def register_routes(app):
             notes = request.form.get("notes", "").strip()
 
             if not full_name or not email or not phone:
-                flash("Full name, email and phone are required.", "danger")
+                flash(
+                    "Full name, email and phone are required.",
+                    "danger",
+                )
                 return render_template("add_guest.html")
 
             email = email.lower()
 
             if not is_valid_email(email):
-                flash("Please enter a valid email address.", "danger")
+                flash(
+                    "Please enter a valid email address.",
+                    "danger",
+                )
                 return render_template("add_guest.html")
 
             if Guest.query.filter(Guest.email.ilike(email)).first():
-                flash("A guest with this email address already exists.", "danger")
+                flash(
+                    "A guest with this email address already exists.",
+                    "danger",
+                )
                 return render_template("add_guest.html")
 
-            db.session.add(Guest(full_name=full_name, email=email, phone=phone, notes=notes))
+            db.session.add(
+                Guest(
+                    full_name=full_name,
+                    email=email,
+                    phone=phone,
+                    notes=notes,
+                )
+            )
+
             db.session.commit()
             flash("Guest added successfully.", "success")
             return redirect(url_for("guests"))
@@ -265,8 +348,14 @@ def register_routes(app):
 
     @app.route("/bookings")
     def bookings():
-        bookings_list = Booking.query.order_by(Booking.created_at.desc()).all()
-        return render_template("bookings.html", bookings=bookings_list)
+        bookings_list = Booking.query.order_by(
+            Booking.created_at.desc()
+        ).all()
+
+        return render_template(
+            "bookings.html",
+            bookings=bookings_list,
+        )
 
     @app.route("/bookings/add", methods=["GET", "POST"])
     def add_booking():
@@ -276,82 +365,82 @@ def register_routes(app):
         if request.method == "POST":
             guest_id = request.form.get("guest_id", "").strip()
             room_id = request.form.get("room_id", "").strip()
-            check_in_date = parse_form_date(request.form.get("check_in_date"))
-            check_out_date = parse_form_date(request.form.get("check_out_date"))
-            booking_status = request.form.get("status", "Confirmed").strip()
+            check_in_date = parse_form_date(
+                request.form.get("check_in_date")
+            )
+            check_out_date = parse_form_date(
+                request.form.get("check_out_date")
+            )
+            booking_status = request.form.get(
+                "status",
+                "Confirmed",
+            ).strip()
 
-            if not guest_id or not room_id or not check_in_date or not check_out_date:
-                flash("Guest, room, check-in date and check-out date are required.", "danger")
-                return render_add_booking_form(guests_list, rooms_list)
-
-            if check_out_date <= check_in_date:
-                flash("Check-out date must be after check-in date.", "danger")
-                return render_add_booking_form(guests_list, rooms_list)
-
-            if booking_status not in ["Pending", "Confirmed"]:
-                flash("New bookings can only be Pending or Confirmed.", "danger")
-                return render_add_booking_form(guests_list, rooms_list)
-
-            try:
-                guest_id = int(guest_id)
-                room_id = int(room_id)
-            except ValueError:
-                flash("Please select a valid guest and room.", "danger")
-                return render_add_booking_form(guests_list, rooms_list)
-
-            selected_room = db.session.get(Room, room_id)
-            selected_guest = db.session.get(Guest, guest_id)
-
-            if not selected_room or not selected_guest:
-                flash("Please select a valid guest and room.", "danger")
-                return render_add_booking_form(guests_list, rooms_list)
-
-            if selected_room.status == "Maintenance":
-                flash("Rooms under Maintenance cannot be booked.", "danger")
-                return render_add_booking_form(guests_list, rooms_list)
-
-            overlapping_booking = Booking.query.filter(
-                Booking.room_id == selected_room.id,
-                Booking.status.in_(ACTIVE_BOOKING_STATUSES),
-                Booking.check_in_date < check_out_date,
-                Booking.check_out_date > check_in_date,
-            ).first()
-
-            if overlapping_booking:
+            if (
+                not guest_id
+                or not room_id
+                or not check_in_date
+                or not check_out_date
+            ):
                 flash(
-                    "Booking rejected: the selected room already has an active booking for overlapping dates.",
+                    "Guest, room, check-in date and check-out date are required.",
                     "danger",
                 )
-                return render_add_booking_form(guests_list, rooms_list)
+                return render_add_booking_form(
+                    guests_list,
+                    rooms_list,
+                )
 
-            total_nights = (check_out_date - check_in_date).days
-            total_price = total_nights * selected_room.price_per_night
-
-            db.session.add(
-                Booking(
-                    guest_id=selected_guest.id,
-                    room_id=selected_room.id,
+            try:
+                create_booking(
+                    guest_id=int(guest_id),
+                    room_id=int(room_id),
                     check_in_date=check_in_date,
                     check_out_date=check_out_date,
-                    status=booking_status,
-                    total_price=total_price,
+                    booking_status=booking_status,
                 )
-            )
-            db.session.commit()
+
+                db.session.commit()
+
+            except ValueError:
+                db.session.rollback()
+                flash(
+                    "Please select a valid guest and room.",
+                    "danger",
+                )
+                return render_add_booking_form(
+                    guests_list,
+                    rooms_list,
+                )
+
+            except BookingServiceError as error:
+                db.session.rollback()
+                flash(str(error), "danger")
+                return render_add_booking_form(
+                    guests_list,
+                    rooms_list,
+                )
+
             flash("Booking created successfully.", "success")
             return redirect(url_for("bookings"))
 
-        return render_add_booking_form(guests_list, rooms_list)
+        return render_add_booking_form(
+            guests_list,
+            rooms_list,
+        )
 
     @app.post("/bookings/<int:booking_id>/cancel")
     def cancel_booking(booking_id):
         booking = Booking.query.get_or_404(booking_id)
-        if booking.status in ["Checked-out", "Cancelled"]:
-            flash("Booking cannot be cancelled in its current status.", "danger")
+
+        try:
+            cancel_booking_service(booking)
+            db.session.commit()
+        except BookingServiceError as error:
+            db.session.rollback()
+            flash(str(error), "danger")
             return redirect(url_for("bookings"))
 
-        booking.status = "Cancelled"
-        db.session.commit()
         flash("Booking cancelled.", "success")
         return redirect(url_for("bookings"))
 
@@ -359,17 +448,17 @@ def register_routes(app):
     def check_in_booking(booking_id):
         booking = Booking.query.get_or_404(booking_id)
 
-        if booking.status not in ["Pending", "Confirmed"]:
-            flash("Only Pending or Confirmed bookings can be checked in.", "danger")
+        try:
+            check_in_booking_service(
+                booking,
+                current_date=date.today(),
+            )
+            db.session.commit()
+        except BookingServiceError as error:
+            db.session.rollback()
+            flash(str(error), "danger")
             return redirect(url_for("bookings"))
 
-        if date.today() < booking.check_in_date:
-            flash("Guest cannot be checked in before the check-in date.", "danger")
-            return redirect(url_for("bookings"))
-
-        booking.status = "Checked-in"
-        booking.room.status = "Occupied"
-        db.session.commit()
         flash("Guest checked in successfully.", "success")
         return redirect(url_for("bookings"))
 
@@ -378,13 +467,20 @@ def register_routes(app):
         booking = Booking.query.get_or_404(booking_id)
 
         if booking.status != "Checked-in":
-            flash("Only checked-in bookings can be checked out.", "danger")
+            flash(
+                "Only checked-in bookings can be checked out.",
+                "danger",
+            )
             return redirect(url_for("bookings"))
 
         booking.status = "Checked-out"
         booking.room.status = "Cleaning"
 
-        notification_result = send_housekeeping_notification(booking.room, booking)
+        notification_result = send_housekeeping_notification(
+            booking.room,
+            booking,
+        )
+
         notification_log = NotificationLog(
             room_id=booking.room.id,
             booking_id=booking.id,
@@ -393,17 +489,21 @@ def register_routes(app):
             message=notification_result["message"],
             error_message=notification_result["error"],
         )
+
         db.session.add(notification_log)
         db.session.commit()
 
         if notification_result["success"]:
             flash(
-                f"Guest checked out. Room moved to Cleaning. Housekeeping notification sent via {notification_result['channel']}.",
+                f"Guest checked out. Room moved to Cleaning. "
+                f"Housekeeping notification sent via "
+                f"{notification_result['channel']}.",
                 "success",
             )
         else:
             flash(
-                "Guest checked out and room moved to Cleaning, but housekeeping notification failed. Check notification logs.",
+                "Guest checked out and room moved to Cleaning, but "
+                "housekeeping notification failed. Check notification logs.",
                 "warning",
             )
 
@@ -411,45 +511,68 @@ def register_routes(app):
 
     @app.get("/notifications")
     def notifications():
-        logs = NotificationLog.query.order_by(NotificationLog.created_at.desc()).all()
-        return render_template("notifications.html", logs=logs)
+        logs = (
+            NotificationLog.query
+            .order_by(NotificationLog.created_at.desc())
+            .all()
+        )
+
+        return render_template(
+            "notifications.html",
+            logs=logs,
+        )
 
     @app.get("/api/notifications")
     @require_api_key
     def api_notifications():
-        logs = NotificationLog.query.order_by(NotificationLog.created_at.desc()).all()
-        return jsonify([
-            {
-                "id": log.id,
-                "room_id": log.room_id,
-                "booking_id": log.booking_id,
-                "room_number": log.room.room_number if log.room else None,
-                "channel": log.channel,
-                "status": log.status,
-                "message": log.message,
-                "error_message": log.error_message,
-                "created_at": log.created_at.isoformat(),
-            }
-            for log in logs
-        ])
+        logs = (
+            NotificationLog.query
+            .order_by(NotificationLog.created_at.desc())
+            .all()
+        )
+
+        return jsonify(
+            [
+                {
+                    "id": log.id,
+                    "room_id": log.room_id,
+                    "booking_id": log.booking_id,
+                    "room_number": (
+                        log.room.room_number
+                        if log.room
+                        else None
+                    ),
+                    "channel": log.channel,
+                    "status": log.status,
+                    "message": log.message,
+                    "error_message": log.error_message,
+                    "created_at": log.created_at.isoformat(),
+                }
+                for log in logs
+            ]
+        )
 
     @app.get("/api/health")
     def api_health():
-        return jsonify({
-            "status": "ok",
-            "service": "boutique-hotel-booking-system",
-            "features": [
-                "room-management",
-                "booking-management",
-                "housekeeping-notifications",
-                "room-ready-notifications",
-                "notification-logging",
-            ],
-        })
+        return jsonify(
+            {
+                "status": "ok",
+                "service": "boutique-hotel-booking-system",
+                "features": [
+                    "room-management",
+                    "booking-management",
+                    "housekeeping-notifications",
+                    "room-ready-notifications",
+                    "notification-logging",
+                ],
+            }
+        )
 
 
 app = create_app()
 
 
 if __name__ == "__main__":
-    app.run(debug=os.getenv("FLASK_DEBUG", "0") == "1")
+    app.run(
+        debug=os.getenv("FLASK_DEBUG", "0") == "1"
+    )

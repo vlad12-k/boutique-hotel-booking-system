@@ -1,102 +1,245 @@
-# Peer Review Log
-
-| Reviewed Area | Feedback Received | Interpretation | Action Taken |
-|---|---|---|---|
-| (Placeholder) | (Placeholder) | (Placeholder) | (Placeholder) |
-
-# Peer Review Log
+# Peer Review Record and Response
 
 ## Project
+
 Boutique Hotel Booking and Room Management System
 
+## Module
+
+Application Development
+
+## Author
+
+Vladyslav Kononov
+
+## Review Details
+
+| Field | Information |
+|---|---|
+| Review source | Application Development Lecturer |
+| Review date | 22 June 2026 |
+| Reviewed material | Software Design Document |
+| Review type | Model peer review supplied for use in place of peer feedback |
+
+---
+
 ## Purpose
-This peer review log records feedback received during the development of the hotel booking and room management application. It supports the Unit 36 development portfolio by showing how feedback was interpreted and how improvements were planned or implemented.
 
-Peer review is important because it helps identify usability issues, missing functionality, unclear documentation and technical risks before the final evaluation stage.
+This document records the model peer review supplied by the Application Development lecturer for use in place of peer feedback.
 
----
+The project was completed individually, and I was the only student in the group. The lecturer therefore supplied a model review that could be used as the peer-feedback evidence for this stage of the project.
 
-## Review Context
+This document records:
 
-The application was reviewed as an academic prototype for a small 10-room boutique hotel. The review focused on whether the system was suitable for internal hotel staff, especially reception staff, housekeeping staff and a manager.
+- the main feedback received;
+- three areas where I agree with the feedback;
+- the changes made or planned in response;
+- one recommendation not implemented within the current MVP;
+- one new development opportunity identified through the review.
 
-The reviewed version included:
-
-- dashboard overview;
-- room management;
-- guest management;
-- booking management;
-- check-in and check-out workflow;
-- room status updates;
-- booking validation;
-- vanilla JavaScript filtering and confirmation features.
+The response below represents my own interpretation of the supplied feedback.
 
 ---
 
-## Peer Review Summary
+## Feedback Received
 
-| Reviewed Area | Feedback Received | Interpretation | Action Taken / Planned |
+### Strengths Identified
+
+The review identified several strengths in the Software Design Document.
+
+The business problem was considered clear because the document explained how paper records, spreadsheets and separate messages could become inconsistent.
+
+The BP1–BP5 structure was also identified as a strength because each business problem was connected to an appropriate system response.
+
+The Agile methodology section was considered one of the strongest parts of the document because it:
+
+- justified the use of Agile for individual development completed in stages;
+- explained why an iterative process was appropriate;
+- explained why Waterfall was not selected.
+
+The original user requirements, UR1–UR7, were also considered clear and relevant to the boutique hotel scenario.
+
+---
+
+## Recommended Improvements
+
+### 1. Add graphical design diagrams
+
+The review identified the absence of graphical design artefacts as the main weakness.
+
+The original database structure was presented mainly through a table, while workflows were described using written arrows.
+
+The recommended diagrams were:
+
+- an Entity Relationship Diagram showing the relationships between Guest, Booking and Room;
+- a Data Flow Diagram showing how information moves through the application.
+
+### 2. Improve the non-functional requirements
+
+The review identified that most of the original system requirements were functional.
+
+It recommended adding clearer non-functional requirements covering areas such as:
+
+- security;
+- usability;
+- reliability.
+
+The review also recommended replacing subjective wording, such as “simple enough for non-technical users”, with wording that could be assessed more objectively.
+
+### 3. Improve the risk assessment and assumptions
+
+The original risk table included impact and mitigation but did not include likelihood.
+
+The review recommended adding a likelihood rating so that the most urgent risks could be identified and prioritised.
+
+It also recommended stating the main project assumptions explicitly, particularly:
+
+- the hotel initially has 10 rooms;
+- the application is intended for local use.
+
+### 4. Consider future development opportunities
+
+The review identified several possible longer-term improvements:
+
+- replacing SQLite with a server-based database if the application is used across several machines;
+- introducing role-based logins for reception, housekeeping and management staff;
+- adding an availability calendar instead of relying only on room-status fields.
+
+These suggestions were identified as future improvements rather than required MVP functionality.
+
+---
+
+## Where I Agree and What I Changed
+
+### 1. Add visual design evidence
+
+I agree that the original design relied too heavily on written explanations and tables.
+
+I added an Entity Relationship Diagram showing the relationships between:
+
+- Guest;
+- Room;
+- Booking.
+
+I also expanded the design documentation with:
+
+- a system architecture diagram;
+- a booking creation and validation workflow;
+- a check-in and check-out workflow;
+- room and booking status lifecycle diagrams;
+- a dashboard information-flow diagram.
+
+A clearly labelled Data Flow Diagram will also be included in the final design evidence to show how information moves between the staff user, application processes and database.
+
+### 2. Strengthen the non-functional requirements
+
+I agree that the original requirements were mainly functional and that some usability wording was subjective.
+
+I added a separate non-functional requirements section covering:
+
+- usability;
+- maintainability;
+- reliability;
+- portability;
+- responsiveness;
+- data minimisation;
+- testability;
+- security.
+
+The wording was also improved so that the requirements can be connected more clearly to implementation and testing evidence.
+
+### 3. Add risk likelihood and state assumptions
+
+I agree that impact and mitigation alone do not show which risks are most urgent.
+
+The main risk table should include a likelihood rating so that risks can be compared and prioritised more clearly.
+
+The following assumptions have also been stated explicitly:
+
+- the hotel initially operates with 10 rooms;
+- the system is intended for internal staff use;
+- the application is designed for local academic demonstration;
+- SQLite is suitable for the current prototype;
+- the MVP is not intended to represent a complete production hotel-management platform.
+
+---
+
+## Feedback I Decided Not to Implement Within the Current MVP
+
+I decided not to migrate the application from SQLite to PostgreSQL or another server-based database as part of the current MVP.
+
+The application is a local academic prototype for a small 10-room boutique hotel. SQLite is proportionate to this scope because it:
+
+- requires minimal configuration;
+- supports the relational Guest, Room and Booking structure;
+- allows the application to run locally;
+- is sufficient for demonstrating the required booking and room-management workflows.
+
+A server-based database would be more appropriate if the application were deployed across several machines or used concurrently by multiple authenticated staff members.
+
+The recommendation has therefore not been rejected completely. It has been recorded as a future production improvement.
+
+---
+
+## New Opportunity Identified Through the Review
+
+The review made me consider an availability-calendar view.
+
+The current application uses:
+
+- booking dates;
+- room statuses;
+- room filtering;
+- booking filtering;
+- overlap prevention.
+
+These features are appropriate for the current MVP. However, an availability calendar could give staff a clearer visual overview of future hotel activity.
+
+A future calendar could display:
+
+- rooms as rows;
+- dates as columns;
+- occupied periods;
+- expected arrivals;
+- expected departures;
+- cleaning periods;
+- maintenance periods.
+
+This improvement was not included in the current MVP because it would require additional database queries, interface components and frontend interaction logic.
+
+---
+
+## Actions and Evidence
+
+| Feedback Item | Response | Evidence | Status |
 |---|---|---|---|
-| Dashboard | The dashboard gives a useful overview, but it should look more professional for presentation. | The dashboard works functionally, but the visual design needs improvement to make it suitable for portfolio evidence. | Planned: improve dashboard cards, spacing, headings and visual hierarchy in the UI polish iteration. |
-| Room management | Room statuses are clear, but filtering should show a message when no rooms match the selected status. | A blank table may confuse staff because it does not explain why no rows are visible. | Implemented: added an empty-state message for the room status filter. |
-| Booking management | The booking table is useful, but filtering should also include an empty-state message. | The booking page should behave consistently with the rooms page. | Planned: add `bookingFilterEmptyMessage` to the bookings template. |
-| Booking validation | The system correctly prevents invalid dates and overlapping bookings, but evidence should be captured. | Validation is a key part of the business problem and must be shown clearly in testing evidence. | Planned: capture screenshots for invalid dates, overlapping bookings and maintenance-room booking prevention. |
-| Guest management | The system allows guests to be added and viewed, but there is no edit function. | Guest records may need correction after entry; this is a realistic staff requirement. | Planned: add an Edit Guest workflow in a later functional improvement branch. |
-| User interface | The system is simple to use, but some pages still look like a basic prototype. | The application needs a more consistent and professional visual identity. | Planned: improve `base.html`, dashboard, tables, forms and `style.css`. |
-| Documentation | The documentation structure is useful, but it needs more detail for assessment evidence. | The project needs stronger support documentation for the development portfolio. | Implemented / in progress: development log, user guide, technical notes, traceability matrix and test results template. |
-| Testing evidence | Manual tests are planned, but actual results and screenshots still need to be added. | The final report should include proof that the system was tested against requirements. | Planned: complete test results table and add screenshots to the appendix. |
+| Add ERD | Added a visual relationship diagram for Guest, Room and Booking | `docs/design-diagrams.md` | Completed |
+| Add DFD | Include a clearly labelled Data Flow Diagram | `docs/design-diagrams.md` | In progress |
+| Add non-functional requirements | Added a separate non-functional requirements section | `docs/requirements.md` | Completed |
+| Make subjective requirements more testable | Revised the requirement wording and linked it to evidence | `docs/requirements.md` | Completed |
+| State assumptions | Added the 10-room, local-use and academic-MVP assumptions | `docs/requirements.md` | Completed |
+| Add risk likelihood | Add or verify the likelihood column in the main risk table | Application Development report | To be verified |
+| Consider server database | Retained as a future production improvement | Project documentation | Deferred |
+| Consider role-based access | Retained as a future production improvement | Project documentation | Deferred |
+| Consider availability calendar | Recorded as a future development opportunity | Project documentation | Deferred |
 
 ---
 
-## Key Feedback Themes
+## Conclusion
 
-### 1. Improve presentation quality
+The peer review confirmed that the project had a strong foundation:
 
-The application is functional, but the visual design should be improved so it looks like a professional internal operations tool. This is important for both the academic submission and future portfolio use.
+- a clear business problem;
+- relevant user requirements;
+- a justified Agile methodology;
+- an appropriate MVP scope.
 
-### 2. Strengthen evidence
+The most important weakness was the lack of visual design evidence.
 
-The project should not only claim that features work. It should include screenshots, manual test results and references to the relevant files or pages.
+In response to the review, I added an Entity Relationship Diagram, expanded the design documentation, strengthened the non-functional requirements and stated the project assumptions explicitly.
 
-### 3. Make workflows clearer
+The risk table will also be checked to ensure that likelihood is included.
 
-The check-in, check-out and room status workflows are useful, but the report and documentation should clearly explain how they support daily hotel operations.
+I decided not to migrate from SQLite within the current MVP because the additional complexity would not be proportionate to a local 10-room academic prototype.
 
-### 4. Add one realistic functional improvement
-
-Adding guest editing would improve the system because hotel staff may need to correct guest details after the initial record is created.
-
----
-
-## Improvements Implemented from Review
-
-| Improvement | Reason | Related File(s) | Status |
-|---|---|---|---|
-| Added room filter empty-state message | Prevents confusion when a selected filter returns no rows | `templates/rooms.html` | Implemented |
-| Created development log | Records project iterations and development evidence | `docs/development-log.md` | Implemented |
-| Created user guide | Supports staff use and assignment documentation | `docs/user-guide.md` | In progress |
-| Created technical notes | Explains system architecture and implementation choices | `docs/technical-notes.md` | In progress |
-| Created traceability matrix | Links requirements to implemented features and evidence | `docs/traceability-matrix.md` | In progress |
-| Created test results template | Prepares structure for manual testing evidence | `docs/test-results-template.md` | In progress |
-
----
-
-## Improvements Planned but Not Yet Implemented
-
-| Planned Improvement | Reason | Priority |
-|---|---|---|
-| Booking filter empty-state message | Keeps booking filtering consistent with room filtering | High |
-| Portfolio UI polish | Makes the website more professional and presentation-ready | High |
-| Guest editing workflow | Completes guest record management more realistically | Medium |
-| Architecture documentation | Supports design explanation and report evidence | Medium |
-| Screenshots checklist | Helps collect clear appendix evidence | Medium |
-
----
-
-## Review Conclusion
-
-The peer review confirmed that the application already meets the core purpose of the project: it provides a working internal system for managing rooms, guests and bookings in a small boutique hotel.
-
-However, the review also identified areas for improvement. The most important next steps are to improve the visual presentation, complete the documentation, collect testing evidence and add one realistic functional improvement such as guest editing.
-
-This feedback will be used in the final evaluation chapter to explain how the project changed during development and how the final system compares with the original requirements.
+The review also helped identify an availability calendar as a realistic future improvement that could make future room occupancy easier for hotel staff to understand.

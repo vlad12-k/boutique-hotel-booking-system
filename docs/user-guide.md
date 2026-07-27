@@ -1,106 +1,109 @@
-
-
 # User Guide
 
-## Project
-Boutique Hotel Booking and Room Management System
+This guide explains how hotel staff can use the Boutique Hotel Booking and Room Management System for daily room, guest and booking operations.
 
-## Purpose
-This user guide explains how staff can use the Boutique Hotel Booking and Room Management System during daily hotel operations. It supports the Unit 36 development portfolio by providing user-facing documentation for the functional application.
+The application is a local staff-facing MVP. It does not include separate user accounts or role-based permissions.
 
-The application is designed for internal hotel staff, including reception staff, housekeeping staff and a hotel manager. The MVP does not include separate user accounts or role-based login, but the workflows are described according to typical staff responsibilities.
+The later Telegram and email housekeeping notification features are documented separately in the Application Program Interfaces documentation.
 
 ---
 
 ## 1. Starting the Application
 
-To run the application locally:
+From the project directory, start the Flask application with:
 
 ```bash
 python app.py
 ```
 
-Then open the local URL in a browser:
+Open the following address in a web browser:
 
 ```text
 http://127.0.0.1:5000
 ```
 
-The application should open on the dashboard page.
+The application opens on the Dashboard page.
 
 ---
 
 ## 2. Main Navigation
 
-The navigation bar allows staff to move between the main areas of the system:
+The navigation bar provides access to the main application areas.
 
 | Page | Purpose |
 |---|---|
-| Dashboard | View an overview of hotel activity and room status |
-| Rooms | View rooms and update room status |
+| Dashboard | View current room and booking activity |
+| Rooms | View rooms, filter them by status and update room status |
 | Guests | View guest records and add new guests |
-| Bookings | View bookings, cancel bookings, check guests in and check guests out |
-| Add Booking | Create a new room booking |
+| Bookings | View, filter and manage booking records |
+
+Forms for adding rooms, guests and bookings are accessed from their related pages.
 
 ---
 
 ## 3. Dashboard
 
-The dashboard provides a quick operational overview for reception staff and managers.
+The Dashboard provides an overview of current hotel operations.
 
-The dashboard shows:
+It displays:
 
-- total number of rooms;
+- total rooms;
 - available rooms;
 - occupied rooms;
 - rooms being cleaned;
-- rooms under maintenance;
-- today's check-ins;
-- today's check-outs;
+- rooms under Maintenance;
+- today’s check-ins;
+- today’s check-outs;
 - recent bookings.
 
-### How staff use it
-
-Reception staff can use the dashboard at the start of the day to understand which rooms are available, which rooms require cleaning and which guests are expected to arrive or leave.
-
-Managers can use the dashboard to monitor daily hotel activity without opening each individual page.
+Staff can use the Dashboard at the beginning of the day to review room availability and expected guest activity.
 
 ---
 
-## 4. Rooms Page
+## 4. Managing Rooms
 
-The Rooms page displays all hotel rooms and their current operational status.
+Open the **Rooms** page to view all room records.
 
-Each room record includes:
+Each room includes:
 
 - room number;
 - room type;
-- price per night;
-- current room status.
+- nightly price;
+- current status.
 
-Supported room statuses are:
+### Room statuses
 
 | Status | Meaning |
 |---|---|
-| Available | Room is ready for a guest |
-| Occupied | Guest is currently staying in the room |
-| Cleaning | Room requires housekeeping before it can be used again |
-| Maintenance | Room is not available because it requires repair or inspection |
+| Available | The room is ready for use |
+| Occupied | A checked-in guest is using the room |
+| Cleaning | The room requires preparation after check-out |
+| Maintenance | The room has an operational issue and cannot be booked |
+
+### Adding a room
+
+1. Open the Rooms page.
+2. Select **Add Room**.
+3. Enter a unique room number.
+4. Select or enter the room type.
+5. Enter the nightly price.
+6. Select the initial room status.
+7. Submit the form.
+
+The new room should appear on the Rooms page.
 
 ### Updating room status
 
-To update a room status:
-
 1. Open the Rooms page.
-2. Find the correct room.
-3. Select the new status from the status dropdown.
-4. Submit the status update.
+2. Locate the required room.
+3. Select a new status.
+4. Submit the update.
 
-Example: after a guest checks out, the system changes the room status to Cleaning. After housekeeping finishes, staff can update the room status back to Available.
+After a guest checks out, the room automatically moves to `Cleaning`. When preparation is complete, staff can update it to `Available`.
 
 ### Filtering rooms
 
-The Rooms page includes a status filter. Staff can filter by:
+Use the status filter to display:
 
 - All;
 - Available;
@@ -108,149 +111,136 @@ The Rooms page includes a status filter. Staff can filter by:
 - Cleaning;
 - Maintenance.
 
-The filter uses vanilla JavaScript and does not require the page to reload. If no rooms match the selected filter, an empty-state message is displayed.
+The filter updates the displayed rows without reloading the page.
 
 ---
 
-## 5. Guests Page
+## 5. Managing Guests
 
-The Guests page displays guest records stored in the system.
+Open the **Guests** page to view stored guest records.
 
-Each guest record includes:
+Each record may include:
 
 - full name;
 - email address;
 - phone number;
-- notes, if entered.
+- notes.
 
 ### Adding a guest
 
-To add a guest:
-
 1. Open the Guests page.
-2. Click Add Guest.
-3. Enter the guest's full name.
-4. Enter the guest's email address.
-5. Enter the guest's phone number.
-6. Add notes if needed.
+2. Select **Add Guest**.
+3. Enter the guest’s full name.
+4. Enter a valid email address.
+5. Enter the phone number.
+6. Add optional notes.
 7. Submit the form.
 
-The system checks that required fields are completed and that the email address has a basic valid format.
+The application checks the email format and prevents duplicate guest email records.
 
-### Current limitation
-
-The current MVP allows staff to add and view guests. Editing guest records is planned as a future improvement.
+The current MVP supports adding and viewing guests. Editing existing guest records remains a future improvement.
 
 ---
 
-## 6. Bookings Page
+## 6. Managing Bookings
 
-The Bookings page displays booking records and allows staff to manage the booking lifecycle.
+Open the **Bookings** page to view booking records.
 
-Each booking record includes:
+Each booking displays:
 
-- guest name;
-- room number;
+- guest;
+- room;
 - check-in date;
 - check-out date;
 - booking status;
 - total price;
 - available actions.
 
-Supported booking statuses are:
+### Booking statuses
 
 | Status | Meaning |
 |---|---|
-| Pending | Booking has been created but not fully confirmed |
-| Confirmed | Booking is confirmed |
-| Checked-in | Guest has arrived and is staying in the room |
-| Checked-out | Guest has left and the stay is complete |
-| Cancelled | Booking has been cancelled |
+| Pending | A pre-arrival booking awaiting further processing |
+| Confirmed | A confirmed pre-arrival booking |
+| Checked-in | The guest is currently staying in the room |
+| Checked-out | The guest stay has been completed |
+| Cancelled | The booking is no longer active |
 
 ---
 
 ## 7. Creating a Booking
 
-To create a booking:
-
 1. Open the Bookings page.
-2. Click Add Booking or Create Booking.
-3. Select the guest.
-4. Select the room.
-5. Choose a check-in date.
-6. Choose a check-out date.
+2. Select **Add Booking**.
+3. Select a guest.
+4. Select a room.
+5. Enter the check-in date.
+6. Enter the check-out date.
 7. Select the booking status.
 8. Submit the form.
 
-The system calculates the total price based on the room price and the number of nights.
+The application calculates the total price from the number of nights and the room’s nightly price.
 
 ### Booking validation
 
-The system prevents common booking problems:
+The application checks that:
 
-| Validation Rule | Purpose |
-|---|---|
-| Check-out date must be after check-in date | Prevents invalid date ranges |
-| Room must not already have an active overlapping booking | Reduces double-booking risk |
-| Room must not be under Maintenance | Prevents unusable rooms from being assigned to guests |
-| Required fields must be completed | Prevents incomplete records |
+- all required booking fields are completed;
+- check-out is later than check-in;
+- the selected room is not under Maintenance;
+- the room does not have an overlapping active booking.
 
-The date validation is supported by both backend validation and vanilla JavaScript frontend validation.
+When validation fails, the booking is not created and an explanatory message is displayed.
 
 ---
 
-## 8. Checking a Guest In
+## 8. Checking In a Guest
 
-To check in a guest:
+A Pending or Confirmed booking can be checked in.
 
 1. Open the Bookings page.
-2. Find a Pending or Confirmed booking.
-3. Click the Check-in action.
+2. Locate the eligible booking.
+3. Select **Check In**.
 
-After check-in:
+After a successful check-in:
 
-- the booking status changes to Checked-in;
-- the room status changes to Occupied.
-
-This helps reception staff and housekeeping staff understand that the room is currently in use.
+- the booking status changes to `Checked-in`;
+- the room status changes to `Occupied`.
 
 ---
 
-## 9. Checking a Guest Out
+## 9. Checking Out a Guest
 
-To check out a guest:
+Only a Checked-in booking can be checked out.
 
 1. Open the Bookings page.
-2. Find a Checked-in booking.
-3. Click the Check-out action.
+2. Locate the Checked-in booking.
+3. Select **Check Out**.
 
-After check-out:
+After a successful check-out:
 
-- the booking status changes to Checked-out;
-- the room status changes to Cleaning.
+- the booking status changes to `Checked-out`;
+- the room status changes to `Cleaning`.
 
-This supports the housekeeping workflow because the room is clearly marked as needing cleaning before it becomes available again.
+The room must be prepared and manually returned to `Available` before it is treated as ready for use.
 
 ---
 
 ## 10. Cancelling a Booking
 
-To cancel a booking:
-
 1. Open the Bookings page.
-2. Find the relevant booking.
-3. Click Cancel.
-4. Confirm the action in the browser confirmation dialog.
+2. Locate the relevant active booking.
+3. Select **Cancel**.
+4. Review the browser confirmation message.
+5. Confirm the action.
 
-The confirmation prompt helps reduce accidental cancellations.
+Dismissing the confirmation leaves the booking unchanged. Confirming it changes the booking status to `Cancelled`.
 
 ---
 
 ## 11. Filtering Bookings
 
-The Bookings page includes a booking status filter.
-
-Staff can filter by:
+Use the booking-status filter to display:
 
 - All;
 - Pending;
@@ -259,59 +249,66 @@ Staff can filter by:
 - Checked-out;
 - Cancelled.
 
-This feature helps staff quickly find bookings by operational status. It is implemented using vanilla JavaScript.
+The filter helps staff locate bookings by their current operational status without reloading the page.
 
 ---
 
-## 12. Common Staff Workflow Example
+## 12. Typical Staff Workflow
 
-A typical daily workflow may look like this:
+A normal booking lifecycle may follow these steps:
 
-1. Reception opens the dashboard to review today's activity.
-2. Reception adds a new guest record.
-3. Reception creates a booking for the guest.
-4. On arrival day, reception checks the guest in.
-5. The room status automatically becomes Occupied.
-6. On departure day, reception checks the guest out.
-7. The room status automatically becomes Cleaning.
-8. Housekeeping cleans the room.
-9. Staff update the room status back to Available.
-
-This workflow shows how the application supports coordination between reception and housekeeping.
+1. Staff review the Dashboard.
+2. A guest record is created.
+3. A room booking is created.
+4. The guest arrives and is checked in.
+5. The booking becomes `Checked-in`.
+6. The room becomes `Occupied`.
+7. The guest is checked out at the end of the stay.
+8. The booking becomes `Checked-out`.
+9. The room becomes `Cleaning`.
+10. After preparation, staff return the room to `Available`.
 
 ---
 
 ## 13. Troubleshooting
 
-| Problem | Possible Cause | Suggested Action |
+| Problem | Likely Cause | Action |
 |---|---|---|
-| Page does not load | Flask server may not be running | Run `python app.py` and open `http://127.0.0.1:5000` |
-| New guest is not saved | Required fields may be missing or email may be invalid | Check the form fields and try again |
-| Booking is rejected | Dates may be invalid, room may be under Maintenance or room may already be booked | Review the error message and select different dates or room |
-| Filter shows no rows | No records match the selected status | Select All or another status |
-| JavaScript changes not visible | Browser cache may show old files | Refresh the browser or restart Flask server |
+| The application page does not load | The Flask server is not running | Run `python app.py` and reopen the local URL |
+| A guest cannot be created | Required information is missing, the email is invalid or the email already exists | Review the validation message and correct the form |
+| A booking is rejected | The dates are invalid, the room is under Maintenance or an overlapping booking exists | Review the message and change the dates or room |
+| Check In is unavailable | The booking is not Pending or Confirmed | Review the current booking status |
+| Check Out is unavailable | The booking is not Checked-in | Check the guest in before attempting check-out |
+| A filter displays no records | No records match the selected status | Select All or another status |
+| Frontend changes do not appear | The browser may be displaying cached resources | Refresh the page or restart the Flask application |
 
 ---
 
 ## 14. Current MVP Limitations
 
-The current version is an academic MVP and has some limitations:
+The current application does not include:
 
-- no separate login for receptionist, housekeeping and manager roles;
-- no guest editing yet;
-- no customer-facing online booking portal;
-- no payment processing;
-- no email or SMS confirmations;
-- no cloud deployment;
-- no automated backups;
-- no advanced reporting dashboard.
+- authenticated user accounts;
+- role-based permissions;
+- guest-record editing;
+- customer self-booking;
+- online payments;
+- cloud deployment;
+- automated backups;
+- advanced historical reporting.
 
-These limitations are suitable future improvements and can be discussed in the final evaluation.
+These functions are retained as possible future improvements.
 
 ---
 
-## 15. User Guide Summary
+## Summary
 
-The application provides the main tools needed for a small hotel to manage rooms, guests and bookings. It supports the core staff workflows of adding guests, creating bookings, checking guests in, checking guests out and updating room status.
+The application allows hotel staff to:
 
-The system also includes validation rules to reduce double bookings and invalid records. This makes it more reliable than a manual spreadsheet or paper-based workflow for the boutique hotel scenario.
+- manage room and guest records;
+- create validated bookings;
+- prevent invalid or overlapping room reservations;
+- check guests in and out;
+- track room readiness;
+- filter room and booking records;
+- review current hotel activity from the Dashboard.

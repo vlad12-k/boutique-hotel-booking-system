@@ -64,6 +64,7 @@ def test_production_rejects_short_secret():
                 "APP_ENV": "production",
                 "SECRET_KEY": "short",
                 "SESSION_COOKIE_SECURE": True,
+                "REMEMBER_COOKIE_SECURE": True,
                 "SQLALCHEMY_DATABASE_URI": "postgresql+psycopg://db.example/app",
             }
         )
@@ -76,9 +77,26 @@ def test_production_rejects_prototype_notification_delivery():
                 "APP_ENV": "production",
                 "SECRET_KEY": "a-secure-production-key-with-32-characters",
                 "SESSION_COOKIE_SECURE": True,
+                "REMEMBER_COOKIE_SECURE": True,
                 "SQLALCHEMY_DATABASE_URI": (
                     "postgresql+psycopg://db.example/app"
                 ),
                 "NOTIFICATION_DELIVERY_ENABLED": True,
+            }
+        )
+
+
+def test_production_rejects_weak_api_token():
+    with pytest.raises(RuntimeError, match="API_ADMIN_TOKEN"):
+        create_app(
+            {
+                "APP_ENV": "production",
+                "SECRET_KEY": "a-secure-production-key-with-32-characters",
+                "SESSION_COOKIE_SECURE": True,
+                "REMEMBER_COOKIE_SECURE": True,
+                "SQLALCHEMY_DATABASE_URI": (
+                    "postgresql+psycopg://db.example/app"
+                ),
+                "API_ADMIN_TOKEN": "short-token",
             }
         )

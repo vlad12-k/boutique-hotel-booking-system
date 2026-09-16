@@ -1,10 +1,12 @@
-import re
+import secrets
 from datetime import date, datetime
 from functools import wraps
 
 from flask import current_app, flash, jsonify, redirect, render_template, request, url_for
+from flask_login import login_required
 from sqlalchemy.exc import DBAPIError
 
+from hotel_app.extensions import limiter
 from hotel_app.models import (
     ACTIVE_BOOKING_STATUSES,
     BOOKING_STATUSES,
@@ -15,6 +17,7 @@ from hotel_app.models import (
     Room,
     db,
 )
+from hotel_app.security import is_valid_email
 
 
 from services.booking_service import (
@@ -31,13 +34,6 @@ from services.notification_service import (
 )
 
 
-EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-
-
-def is_valid_email(email):
-    return bool(EMAIL_PATTERN.match(email))
-
-
 def require_api_key(view_func):
     """Protects internal JSON API endpoints with a simple API key."""
 
@@ -46,12 +42,23 @@ def require_api_key(view_func):
         expected_key = current_app.config.get("API_ADMIN_TOKEN")
         provided_key = request.headers.get("X-API-Key")
 
-        if not expected_key or provided_key != expected_key:
+        if (
+            not expected_key
+            or not provided_key
+            or not secrets.compare_digest(
+                str(expected_key),
+                str(provided_key),
+            )
+        ):
             return jsonify({"error": "Unauthorised"}), 401
 
         return view_func(*args, **kwargs)
 
     return wrapper
+
+
+def api_limit() -> str:
+    return current_app.config["API_RATE_LIMIT"]
 
 
 def render_add_booking_form(guests_list, rooms_list):
@@ -72,6 +79,7 @@ def parse_form_date(value):
 
 def register_routes(app):
     @app.route("/")
+    @login_required
     def dashboard():
         today = date.today()
 
@@ -116,6 +124,7 @@ def register_routes(app):
         )
 
     @app.route("/rooms")
+    @login_required
     def rooms():
         rooms_list = Room.query.order_by(Room.room_number.asc()).all()
 
@@ -126,6 +135,7 @@ def register_routes(app):
         )
 
     @app.route("/rooms/add", methods=["GET", "POST"])
+    @login_required
     def add_room():
         if request.method == "POST":
             room_number = request.form.get("room_number", "").strip()
@@ -191,6 +201,7 @@ def register_routes(app):
         )
 
     @app.post("/rooms/<int:room_id>/status")
+    @login_required
     def update_room_status(room_id):
         room = Room.query.get_or_404(room_id)
         previous_status = room.status
@@ -241,6 +252,7 @@ def register_routes(app):
         return redirect(url_for("rooms"))
 
     @app.route("/guests")
+    @login_required
     def guests():
         guests_list = Guest.query.order_by(Guest.full_name.asc()).all()
 
@@ -250,6 +262,7 @@ def register_routes(app):
         )
 
     @app.route("/guests/add", methods=["GET", "POST"])
+    @login_required
     def add_guest():
         if request.method == "POST":
             full_name = request.form.get("full_name", "").strip()
@@ -296,6 +309,7 @@ def register_routes(app):
         return render_template("add_guest.html")
 
     @app.route("/bookings")
+    @login_required
     def bookings():
         bookings_list = Booking.query.order_by(
             Booking.created_at.desc()
@@ -307,6 +321,7 @@ def register_routes(app):
         )
 
     @app.route("/bookings/add", methods=["GET", "POST"])
+    @login_required
     def add_booking():
         guests_list = Guest.query.order_by(Guest.full_name.asc()).all()
         rooms_list = Room.query.order_by(Room.room_number.asc()).all()
@@ -390,6 +405,7 @@ def register_routes(app):
         )
 
     @app.post("/bookings/<int:booking_id>/cancel")
+    @login_required
     def cancel_booking(booking_id):
         booking = Booking.query.get_or_404(booking_id)
 
@@ -405,6 +421,7 @@ def register_routes(app):
         return redirect(url_for("bookings"))
 
     @app.post("/bookings/<int:booking_id>/checkin")
+    @login_required
     def check_in_booking(booking_id):
         booking = Booking.query.get_or_404(booking_id)
 
@@ -423,6 +440,7 @@ def register_routes(app):
         return redirect(url_for("bookings"))
 
     @app.post("/bookings/<int:booking_id>/checkout")
+    @login_required
     def check_out_booking(booking_id):
         booking = Booking.query.get_or_404(booking_id)
 
@@ -472,6 +490,7 @@ def register_routes(app):
         return redirect(url_for("bookings"))
 
     @app.get("/notifications")
+    @login_required
     def notifications():
         logs = (
             NotificationLog.query
@@ -485,6 +504,7 @@ def register_routes(app):
         )
 
     @app.get("/api/notifications")
+    @limiter.limit(api_limit)
     @require_api_key
     def api_notifications():
         logs = (

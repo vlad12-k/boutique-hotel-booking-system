@@ -84,18 +84,21 @@
           <div class="d-flex flex-wrap gap-2">
             {% if booking.status not in ['Cancelled', 'Checked-out'] %}
             <form method="post" action="{{ url_for('cancel_booking', booking_id=booking.id) }}" class="js-cancel-booking-form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button class="btn btn-sm btn-outline-danger" type="submit">Cancel</button>
             </form>
             {% endif %}
 
             {% if booking.status in ['Pending', 'Confirmed'] %}
             <form method="post" action="{{ url_for('check_in_booking', booking_id=booking.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button class="btn btn-sm btn-outline-success" type="submit">Check-in</button>
             </form>
             {% endif %}
 
             {% if booking.status == 'Checked-in' %}
             <form method="post" action="{{ url_for('check_out_booking', booking_id=booking.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button class="btn btn-sm btn-outline-primary" type="submit">Check-out</button>
             </form>
             {% endif %}

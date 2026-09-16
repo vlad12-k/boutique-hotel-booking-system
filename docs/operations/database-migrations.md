@@ -26,8 +26,9 @@ flask --app app db upgrade
 flask --app app db current
 ```
 
-Verify that revision `20260916_0001` is current. PostgreSQL must also contain the
-`ex_booking_room_active_stay` exclusion constraint.
+Verify that revision `20260916_0002` is current. PostgreSQL must contain the
+`ex_booking_room_active_stay` exclusion constraint plus the `staff_account` and
+`security_audit_event` tables.
 
 ## Existing unversioned SQLite database
 
@@ -36,7 +37,7 @@ created by the academic application's `create_all()` startup path; its tables
 already exist.
 
 1. Stop the application and make a private backup of the database file.
-2. Inspect the tables and constraints against revision `20260916_0001`.
+2. Inspect the original tables and constraints against revision `20260916_0001`.
 3. Resolve any schema or invalid-data differences explicitly.
 4. Only after the schema is verified, mark it with:
 
@@ -46,6 +47,9 @@ flask --app app db stamp 20260916_0001
 
 `stamp` records a revision without changing schema. It must never be used as a
 substitute for verification or data migration.
+
+After stamping the verified academic schema, run `flask --app app db upgrade` to
+apply the additive authentication migration normally.
 
 ## Production rule
 

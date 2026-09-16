@@ -80,6 +80,11 @@ def run_worker() -> None:
     """Runs the Telegram long-polling loop."""
     load_dotenv(ENV_PATH)
 
+    if not app.config.get("NOTIFICATION_DELIVERY_ENABLED"):
+        raise RuntimeError(
+            "Prototype Telegram worker is disabled by application configuration."
+        )
+
     print("Telegram staff bot worker started.")
     print("Press CTRL+C to stop.")
 

@@ -69,6 +69,7 @@
         </td>
         <td>
           <form method="post" action="{{ url_for('update_room_status', room_id=room.id) }}" class="status-update-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <select name="status" class="form-select form-select-sm" aria-label="Update status for room {{ room.room_number }}">
               {% for status in room_statuses %}
                 <option value="{{ status }}" {% if status == room.status %}selected{% endif %}>{{ status }}</option>

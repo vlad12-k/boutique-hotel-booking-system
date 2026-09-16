@@ -24,4 +24,6 @@ def test_initial_migration_builds_preserved_schema(tmp_path):
             "guest",
             "notification_log",
             "room",
+            "security_audit_event",
+            "staff_account",
         }

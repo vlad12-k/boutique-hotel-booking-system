@@ -51,10 +51,11 @@ states, room operational states, half-open stay periods, decimal money values
 and external reservation references. A reservation adapter protocol defines the
 boundary for future imports and providers.
 
-These contracts are intentionally not yet persisted. Room types, staff accounts,
-booking audit events and payments require reviewed additive migrations in later
-phases. No SMS, Booking.com, Telegram, WhatsApp, email or payment provider is
-implemented by this foundation.
+These contracts are intentionally not yet persisted. Room types, booking audit
+events and payments require reviewed additive migrations in later phases. Phase
+2 adds persistent staff accounts and security events without expanding the
+booking domain. No SMS, Booking.com, Telegram, WhatsApp, email or payment
+provider is implemented by this foundation.
 
 ## Inventory boundary
 
@@ -72,9 +73,8 @@ and repository secret patterns.
 
 ## Deferred work
 
-- Owner authentication, CSRF, rate limiting and secure response headers.
-- Persistent `StaffAccount`, `RoomType`, `Payment` and append-only booking-event
-  models.
+- Staff account administration and fine-grained role authorisation.
+- Persistent `RoomType`, `Payment` and append-only booking-event models.
 - The seven-room calendar, Today workflow, quick entry and database exports.
 - Retention/anonymisation workflows and restore drills.
 - Render Blueprint, paid resources, deployment and custom domain configuration.

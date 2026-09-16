@@ -155,3 +155,36 @@ def test_postgresql_exclusion_constraint_is_installed(postgres_engine):
         ).scalar_one()
 
     assert exists is True
+
+
+@pytest.mark.postgresql
+def test_authentication_tables_and_constraints_are_installed(postgres_engine):
+    with postgres_engine.connect() as connection:
+        tables = connection.execute(
+            text(
+                """
+                SELECT tablename
+                FROM pg_tables
+                WHERE schemaname = 'public'
+                  AND tablename IN ('staff_account', 'security_audit_event')
+                """
+            )
+        ).scalars()
+        constraints = connection.execute(
+            text(
+                """
+                SELECT conname
+                FROM pg_constraint
+                WHERE conname IN (
+                    'ck_staff_account_email_normalised',
+                    'ck_staff_account_role'
+                )
+                """
+            )
+        ).scalars()
+
+    assert set(tables) == {"security_audit_event", "staff_account"}
+    assert set(constraints) == {
+        "ck_staff_account_email_normalised",
+        "ck_staff_account_role",
+    }

@@ -15,6 +15,7 @@
 <div class="row g-4 align-items-start">
   <div class="col-lg-8">
     <form method="post" class="card card-body shadow-sm form-panel">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="section-kicker mb-3">Guest details</div>
 
       <div class="mb-3">

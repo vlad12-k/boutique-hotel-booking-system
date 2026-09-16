@@ -14,11 +14,13 @@ The repository now has an explicit production-foundation phase. It provides:
 - PostgreSQL as the required production database;
 - Alembic migrations instead of startup-time schema creation;
 - PostgreSQL protection against concurrent overlapping active bookings;
+- persistent owner/staff accounts with secure password hashing and audited login;
+- authenticated owner routes, CSRF protection, rate limits and secure headers;
 - provider-neutral booking, payment and integration contracts;
 - CI tests against PostgreSQL plus dependency and secret scanning.
 
-The application is not deployed and is not yet ready for real guest data.
-Authentication, the final seven-room data model, audit events, payments,
+The application is not deployed and is not yet ready for real guest data. The
+final seven-room data model, operational audit history, payments,
 calendar/export workflows and external providers remain separate future phases.
 
 The privacy-sanitised academic baseline is preserved in the prerelease tagged
@@ -285,7 +287,14 @@ versioned schema:
 ```bash
 cp .env.example .env
 flask --app app db upgrade
+flask --app app bootstrap-owner
 ```
+
+`bootstrap-owner` securely prompts for the first owner's email, display name and
+password. It accepts bootstrap environment values for non-interactive operation,
+never accepts a password as a command-line argument, and refuses to run after
+the first staff account exists. Remove bootstrap environment values immediately
+after the command completes.
 
 The application no longer creates tables or demo records during startup. The
 original synthetic academic inventory can be added explicitly with
@@ -303,7 +312,8 @@ Open:
 http://127.0.0.1:5000
 ```
 
-The application opens on the Dashboard.
+The application opens on the sign-in screen. All operational HTML routes require
+an active staff account.
 
 Detailed user instructions are provided in:
 
@@ -328,6 +338,13 @@ The `.env.example` file contains safe placeholders. Real credentials belong only
 | `SECRET_KEY` | Flask session signing key |
 | `FLASK_DEBUG` | Enables local Flask debug mode when set appropriately |
 | `API_ADMIN_TOKEN` | Protects the internal notification audit endpoint |
+| `RATELIMIT_STORAGE_URI` | Configures rate-limit state storage; local default is process memory |
+| `LOGIN_RATE_LIMIT` | Limits repeated login attempts |
+| `LOGIN_IP_RATE_LIMIT` | Limits aggregate login attempts from one source address |
+| `API_RATE_LIMIT` | Limits requests to protected internal API endpoints |
+| `BOOTSTRAP_OWNER_EMAIL` | Optional non-interactive initial-owner email |
+| `BOOTSTRAP_OWNER_NAME` | Optional non-interactive initial-owner display name |
+| `BOOTSTRAP_OWNER_PASSWORD` | Optional non-interactive initial-owner password; unset after use |
 | `TELEGRAM_BOT_TOKEN` | Authenticates requests to the Telegram Bot API |
 | `TELEGRAM_CHAT_ID` | Receives outbound housekeeping notifications |
 | `TELEGRAM_ALLOWED_CHAT_IDS` | Defines authorised Telegram staff chats |
@@ -509,8 +526,7 @@ The project is an academic prototype rather than a production hotel-management p
 
 Current limitations include:
 
-- no complete staff authentication system;
-- no role-based receptionist, housekeeping and manager permissions;
+- no account-management interface or fine-grained role permissions;
 - no guest-record editing;
 - no customer-facing booking portal;
 - no online payment processing;
@@ -521,7 +537,7 @@ Current limitations include:
 - no advanced occupancy or revenue analytics.
 
 See `docs/architecture/production-foundation.md` for the current boundaries and
-`docs/operations/database-migrations.md` for the migration workflow.
+`docs/security/owner-authentication.md` for the authentication boundary.
 
 ---
 
@@ -529,9 +545,8 @@ See `docs/architecture/production-foundation.md` for the current boundaries and
 
 Appropriate future improvements include:
 
-- staff authentication and role-based access control;
+- staff account administration and fine-grained role permissions;
 - Edit Guest functionality;
-- PostgreSQL migration;
 - cloud deployment;
 - automated database backups;
 - customer booking confirmation emails;

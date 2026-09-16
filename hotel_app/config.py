@@ -1,10 +1,14 @@
 import os
 from collections.abc import Mapping
+from datetime import timedelta
 from typing import Any
 
 
 DEVELOPMENT_DATABASE_URL = "sqlite:///hotel.db"
 UNSAFE_SECRET_VALUES = frozenset({"change-me", "dev", "secret", "your-secret-key"})
+UNSAFE_API_TOKEN_VALUES = frozenset(
+    {"change-me", "your-api-admin-token", "your_api_admin_token"}
+)
 
 
 def normalise_database_url(value: str) -> str:
@@ -25,9 +29,25 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     API_ADMIN_TOKEN = os.getenv("API_ADMIN_TOKEN")
 
+    SESSION_COOKIE_NAME = "haifa_ops_session"
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = APP_ENV == "production"
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=8)
+    SESSION_REFRESH_EACH_REQUEST = False
+
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SAMESITE = "Lax"
+    REMEMBER_COOKIE_SECURE = APP_ENV == "production"
+
+    WTF_CSRF_TIME_LIMIT = 3600
+    WTF_CSRF_SSL_STRICT = APP_ENV == "production"
+    RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
+    LOGIN_RATE_LIMIT = os.getenv("LOGIN_RATE_LIMIT", "5 per minute")
+    LOGIN_IP_RATE_LIMIT = os.getenv("LOGIN_IP_RATE_LIMIT", "20 per minute")
+    API_RATE_LIMIT = os.getenv("API_RATE_LIMIT", "30 per minute")
+    RATELIMIT_HEADERS_ENABLED = True
+    MAX_CONTENT_LENGTH = 1 * 1024 * 1024
 
     NOTIFICATION_DELIVERY_ENABLED = (
         os.getenv("NOTIFICATION_DELIVERY_ENABLED", "0") == "1"
@@ -57,6 +77,18 @@ def validate_config(config: Mapping[str, Any]) -> None:
 
     if not config.get("SESSION_COOKIE_SECURE"):
         raise RuntimeError("Production sessions require secure cookies.")
+
+    if not config.get("REMEMBER_COOKIE_SECURE"):
+        raise RuntimeError("Production remember cookies require secure cookies.")
+
+    api_token = config.get("API_ADMIN_TOKEN")
+    if api_token and (
+        len(str(api_token)) < 32
+        or str(api_token).casefold() in UNSAFE_API_TOKEN_VALUES
+    ):
+        raise RuntimeError(
+            "Production API_ADMIN_TOKEN must be at least 32 characters long."
+        )
 
     if config.get("NOTIFICATION_DELIVERY_ENABLED"):
         raise RuntimeError(

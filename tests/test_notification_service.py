@@ -57,6 +57,29 @@ def test_room_ready_message_excludes_guest_personal_data():
     assert "payment" not in message.lower()
 
 
+def test_notification_delivery_can_be_disabled_without_network_calls(monkeypatch):
+    class RoomWithRoomNumber:
+        room_number = "110"
+        status = "Cleaning"
+
+    def unexpected_delivery(message):
+        raise AssertionError("External delivery must not be attempted")
+
+    monkeypatch.setattr(
+        notification_service,
+        "send_telegram_message",
+        unexpected_delivery,
+    )
+
+    result = send_housekeeping_notification(
+        RoomWithRoomNumber(),
+        delivery_enabled=False,
+    )
+
+    assert result["success"] is False
+    assert result["channel"] == "disabled"
+
+
 def test_housekeeping_notification_uses_email_backup_when_telegram_fails(monkeypatch):
     class RoomWithRoomNumber:
         room_number = "110"

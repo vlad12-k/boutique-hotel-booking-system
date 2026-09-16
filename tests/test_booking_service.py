@@ -1,4 +1,5 @@
 from datetime import date
+from types import SimpleNamespace
 
 import pytest
 from flask import Flask
@@ -10,7 +11,23 @@ from services.booking_service import (
     check_in_booking,
     check_out_booking,
     create_booking,
+    is_availability_conflict,
 )
+
+
+@pytest.mark.parametrize(
+    ("sqlstate", "expected"),
+    [
+        ("23P01", True),
+        ("40001", True),
+        ("40P01", True),
+        ("23505", False),
+        (None, False),
+    ],
+)
+def test_availability_conflict_identifies_postgresql_outcomes(sqlstate, expected):
+    error = SimpleNamespace(orig=SimpleNamespace(sqlstate=sqlstate))
+    assert is_availability_conflict(error) is expected
 
 
 @pytest.fixture()

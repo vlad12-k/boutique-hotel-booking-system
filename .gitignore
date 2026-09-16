@@ -23,6 +23,8 @@ instance/
 .pytest_cache/
 .coverage
 htmlcov/
+exports/
+*.xlsx
 
 # macOS
 .DS_Store

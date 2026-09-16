@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from models import NotificationLog, Room, db
+from hotel_app.models import NotificationLog, Room, db
 
 
 HELP_MESSAGE = """Hotel staff bot commands:

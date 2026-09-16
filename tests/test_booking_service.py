@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import pytest
 from flask import Flask
 
-from models import Booking, Guest, Room, db
+from models import Booking, Guest, Room, RoomType, db
 from services.booking_service import (
     BookingServiceError,
     cancel_booking,
@@ -62,14 +62,19 @@ def guest_and_room(test_app):
             notes="Test fixture guest",
         )
 
+        room_type = RoomType(
+            code="test-double",
+            display_name="Double",
+            bathroom_type="private",
+        )
         room = Room(
             room_number="201",
-            room_type="Double",
+            room_type=room_type,
             price_per_night=100.0,
             status="Available",
         )
 
-        db.session.add_all([guest, room])
+        db.session.add_all([guest, room_type, room])
         db.session.commit()
 
         return guest.id, room.id
@@ -417,9 +422,6 @@ def test_check_out_booking_updates_booking_and_room_status(
     guest_id, room_id = guest_and_room
 
     with test_app.app_context():
-        room = db.session.get(Room, room_id)
-        room.status = "Occupied"
-
         booking = Booking(
             guest_id=guest_id,
             room_id=room_id,
@@ -431,6 +433,7 @@ def test_check_out_booking_updates_booking_and_room_status(
 
         db.session.add(booking)
         db.session.commit()
+        assert booking.room.status == "Occupied"
 
         check_out_booking(booking)
         db.session.commit()

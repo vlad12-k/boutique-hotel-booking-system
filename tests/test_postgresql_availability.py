@@ -52,12 +52,26 @@ def create_guest_and_room(engine):
         room_id = connection.execute(
             text(
                 """
-                INSERT INTO room (room_number, room_type, price_per_night, status)
-                VALUES (:number, 'Synthetic', 100, 'Available')
+                WITH inserted_type AS (
+                    INSERT INTO room_type (
+                        code, display_name, bathroom_type, has_balcony_or_terrace,
+                        is_active, created_at
+                    ) VALUES (
+                        :type_code, 'Synthetic', 'private', false,
+                        true, CURRENT_TIMESTAMP
+                    )
+                    RETURNING id
+                )
+                INSERT INTO room (
+                    room_number, room_type_id, price_per_night,
+                    currency, operational_state
+                )
+                SELECT :number, id, 100.00, 'ILS', 'ready'
+                FROM inserted_type
                 RETURNING id
                 """
             ),
-            {"number": f"race-{suffix}"},
+            {"number": f"race-{suffix}", "type_code": f"race-{suffix}"},
         ).scalar_one()
     return guest_id, room_id
 
@@ -72,10 +86,10 @@ def insert_booking(engine, barrier, guest_id, room_id, check_in, check_out):
                     """
                     INSERT INTO booking (
                         guest_id, room_id, check_in_date, check_out_date,
-                        status, total_price, created_at
+                        status, source, total_price, currency, created_at
                     ) VALUES (
                         :guest_id, :room_id, :check_in, :check_out,
-                        'Confirmed', 200, CURRENT_TIMESTAMP
+                        'Confirmed', 'direct', 200.00, 'ILS', CURRENT_TIMESTAMP
                     )
                     """
                 ),
@@ -188,3 +202,110 @@ def test_authentication_tables_and_constraints_are_installed(postgres_engine):
         "ck_staff_account_email_normalised",
         "ck_staff_account_role",
     }
+
+
+@pytest.mark.postgresql
+def test_operational_domain_schema_is_installed(postgres_engine):
+    with postgres_engine.connect() as connection:
+        tables = set(
+            connection.execute(
+                text(
+                    """
+                    SELECT tablename
+                    FROM pg_tables
+                    WHERE schemaname = 'public'
+                      AND tablename IN ('room_type', 'booking_event', 'payment')
+                    """
+                )
+            ).scalars()
+        )
+        money_columns = connection.execute(
+            text(
+                """
+                SELECT table_name, column_name, numeric_precision, numeric_scale
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND (table_name, column_name) IN (
+                      ('room', 'price_per_night'),
+                      ('booking', 'total_price'),
+                      ('payment', 'amount')
+                  )
+                ORDER BY table_name, column_name
+                """
+            )
+        ).all()
+        constraints = set(
+            connection.execute(
+                text(
+                    """
+                    SELECT conname
+                    FROM pg_constraint
+                    WHERE conname IN (
+                        'ck_room_operational_state',
+                        'ck_booking_source',
+                        'ck_booking_status',
+                        'uq_booking_external_reference',
+                        'ck_payment_status'
+                    )
+                    """
+                )
+            ).scalars()
+        )
+
+    assert tables == {"room_type", "booking_event", "payment"}
+    assert money_columns == [
+        ("booking", "total_price", 12, 2),
+        ("payment", "amount", 12, 2),
+        ("room", "price_per_night", 12, 2),
+    ]
+    assert constraints == {
+        "ck_room_operational_state",
+        "ck_booking_source",
+        "ck_booking_status",
+        "uq_booking_external_reference",
+        "ck_payment_status",
+    }
+
+
+@pytest.mark.postgresql
+def test_booking_event_database_trigger_rejects_mutation(postgres_engine):
+    guest_id, room_id = create_guest_and_room(postgres_engine)
+    with postgres_engine.begin() as connection:
+        booking_id = connection.execute(
+            text(
+                """
+                INSERT INTO booking (
+                    guest_id, room_id, check_in_date, check_out_date,
+                    status, source, total_price, currency, created_at
+                ) VALUES (
+                    :guest_id, :room_id, '2027-02-01', '2027-02-02',
+                    'Confirmed', 'direct', 100.00, 'ILS', CURRENT_TIMESTAMP
+                )
+                RETURNING id
+                """
+            ),
+            {"guest_id": guest_id, "room_id": room_id},
+        ).scalar_one()
+        event_id = connection.execute(
+            text(
+                """
+                INSERT INTO booking_event (
+                    booking_id, event_type, to_status, to_room_id, occurred_at
+                ) VALUES (
+                    :booking_id, 'created', 'Confirmed', :room_id,
+                    CURRENT_TIMESTAMP
+                )
+                RETURNING id
+                """
+            ),
+            {"booking_id": booking_id, "room_id": room_id},
+        ).scalar_one()
+
+    with pytest.raises(DBAPIError, match="append-only"):
+        with postgres_engine.begin() as connection:
+            connection.execute(
+                text(
+                    "UPDATE booking_event SET event_type = 'modified' WHERE id = :id"
+                ),
+                {"id": event_id},
+            )

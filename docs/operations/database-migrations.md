@@ -17,6 +17,15 @@ flask --app app seed-academic-demo
 
 The seed command aborts when any room already exists.
 
+For the real physical inventory, configure the three `HAIFA_*_ROOM_RATE`
+settings, review the label and currency settings, and use the separate command:
+
+```bash
+flask --app app seed-haifa-inventory
+```
+
+This creates rooms 1–7 only. It does not create guests or bookings.
+
 ## PostgreSQL development database
 
 Set `DATABASE_URL` to a disposable PostgreSQL database and run:
@@ -26,9 +35,9 @@ flask --app app db upgrade
 flask --app app db current
 ```
 
-Verify that revision `20260916_0002` is current. PostgreSQL must contain the
-`ex_booking_room_active_stay` exclusion constraint plus the `staff_account` and
-`security_audit_event` tables.
+Verify that revision `20260916_0003` is current. PostgreSQL must retain the
+`ex_booking_room_active_stay` exclusion constraint and contain the authentication,
+room type, booking event and payment tables.
 
 ## Existing unversioned SQLite database
 
@@ -49,7 +58,7 @@ flask --app app db stamp 20260916_0001
 substitute for verification or data migration.
 
 After stamping the verified academic schema, run `flask --app app db upgrade` to
-apply the additive authentication migration normally.
+apply the additive authentication and operational-domain migrations normally.
 
 ## Production rule
 

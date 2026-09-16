@@ -1,20 +1,23 @@
 import secrets
 from datetime import date, datetime
+from decimal import Decimal, InvalidOperation
 from functools import wraps
 
 from flask import current_app, flash, jsonify, redirect, render_template, request, url_for
-from flask_login import login_required
+from flask_login import current_user, login_required
 from sqlalchemy.exc import DBAPIError
 
 from hotel_app.extensions import limiter
 from hotel_app.models import (
     ACTIVE_BOOKING_STATUSES,
+    BOOKING_SOURCES,
     BOOKING_STATUSES,
     ROOM_STATUSES,
     Booking,
     Guest,
     NotificationLog,
     Room,
+    RoomType,
     db,
 )
 from hotel_app.security import is_valid_email
@@ -67,6 +70,7 @@ def render_add_booking_form(guests_list, rooms_list):
         guests=guests_list,
         rooms=rooms_list,
         booking_statuses=BOOKING_STATUSES,
+        booking_sources=BOOKING_SOURCES,
     )
 
 
@@ -83,11 +87,13 @@ def register_routes(app):
     def dashboard():
         today = date.today()
 
-        total_rooms = Room.query.count()
-        available_rooms = Room.query.filter_by(status="Available").count()
-        occupied_rooms = Room.query.filter_by(status="Occupied").count()
-        cleaning_rooms = Room.query.filter_by(status="Cleaning").count()
-        maintenance_rooms = Room.query.filter_by(status="Maintenance").count()
+        all_rooms = Room.query.all()
+        room_statuses = [room.status for room in all_rooms]
+        total_rooms = len(all_rooms)
+        available_rooms = room_statuses.count("Available")
+        occupied_rooms = room_statuses.count("Occupied")
+        cleaning_rooms = room_statuses.count("Cleaning")
+        maintenance_rooms = room_statuses.count("Maintenance")
 
         todays_check_ins = (
             Booking.query.filter(
@@ -137,13 +143,21 @@ def register_routes(app):
     @app.route("/rooms/add", methods=["GET", "POST"])
     @login_required
     def add_room():
+        room_types = RoomType.query.filter_by(is_active=True).order_by(
+            RoomType.display_name.asc()
+        ).all()
         if request.method == "POST":
             room_number = request.form.get("room_number", "").strip()
-            room_type = request.form.get("room_type", "").strip()
+            room_type_id = request.form.get("room_type_id", "").strip()
+            legacy_room_type_label = request.form.get("room_type", "").strip()
             price_per_night = request.form.get("price_per_night", "").strip()
             status = request.form.get("status", "Available").strip()
 
-            if not room_number or not room_type or not price_per_night:
+            if (
+                not room_number
+                or not (room_type_id or legacy_room_type_label)
+                or not price_per_night
+            ):
                 flash(
                     "Room number, room type and price are required.",
                     "danger",
@@ -151,14 +165,32 @@ def register_routes(app):
                 return render_template(
                     "add_room.html",
                     room_statuses=ROOM_STATUSES,
+                    room_types=room_types,
+                    currency=current_app.config["PROPERTY_CURRENCY"],
                 )
 
             try:
-                price_value = float(price_per_night)
+                price_value = Decimal(price_per_night).quantize(Decimal("0.01"))
 
                 if price_value <= 0:
-                    raise ValueError
-            except ValueError:
+                    raise InvalidOperation
+                if room_type_id:
+                    selected_room_type = db.session.get(RoomType, int(room_type_id))
+                    if selected_room_type is None or not selected_room_type.is_active:
+                        raise ValueError
+                else:
+                    selected_room_type = RoomType.query.filter_by(
+                        display_name=legacy_room_type_label,
+                        is_active=True,
+                    ).first()
+                    if selected_room_type is None:
+                        selected_room_type = RoomType(
+                            code=f"manual-{secrets.token_hex(8)}",
+                            display_name=legacy_room_type_label,
+                            bathroom_type="unspecified",
+                        )
+                        db.session.add(selected_room_type)
+            except (InvalidOperation, ValueError):
                 flash(
                     "Price per night must be a positive number.",
                     "danger",
@@ -166,6 +198,8 @@ def register_routes(app):
                 return render_template(
                     "add_room.html",
                     room_statuses=ROOM_STATUSES,
+                    room_types=room_types,
+                    currency=current_app.config["PROPERTY_CURRENCY"],
                 )
 
             if status not in ROOM_STATUSES:
@@ -173,6 +207,8 @@ def register_routes(app):
                 return render_template(
                     "add_room.html",
                     room_statuses=ROOM_STATUSES,
+                    room_types=room_types,
+                    currency=current_app.config["PROPERTY_CURRENCY"],
                 )
 
             if Room.query.filter_by(room_number=room_number).first():
@@ -180,13 +216,16 @@ def register_routes(app):
                 return render_template(
                     "add_room.html",
                     room_statuses=ROOM_STATUSES,
+                    room_types=room_types,
+                    currency=current_app.config["PROPERTY_CURRENCY"],
                 )
 
             db.session.add(
                 Room(
                     room_number=room_number,
-                    room_type=room_type,
+                    room_type=selected_room_type,
                     price_per_night=price_value,
+                    currency=current_app.config["PROPERTY_CURRENCY"],
                     status=status,
                 )
             )
@@ -198,6 +237,8 @@ def register_routes(app):
         return render_template(
             "add_room.html",
             room_statuses=ROOM_STATUSES,
+            room_types=room_types,
+            currency=current_app.config["PROPERTY_CURRENCY"],
         )
 
     @app.post("/rooms/<int:room_id>/status")
@@ -270,23 +311,24 @@ def register_routes(app):
             phone = request.form.get("phone", "").strip()
             notes = request.form.get("notes", "").strip()
 
-            if not full_name or not email or not phone:
+            if not full_name:
                 flash(
-                    "Full name, email and phone are required.",
+                    "Full name is required.",
                     "danger",
                 )
                 return render_template("add_guest.html")
 
-            email = email.lower()
+            email = email.lower() or None
+            phone = phone or None
 
-            if not is_valid_email(email):
+            if email and not is_valid_email(email):
                 flash(
                     "Please enter a valid email address.",
                     "danger",
                 )
                 return render_template("add_guest.html")
 
-            if Guest.query.filter(Guest.email.ilike(email)).first():
+            if email and Guest.query.filter(Guest.email.ilike(email)).first():
                 flash(
                     "A guest with this email address already exists.",
                     "danger",
@@ -339,6 +381,9 @@ def register_routes(app):
                 "status",
                 "Confirmed",
             ).strip()
+            source = request.form.get("source", "direct").strip()
+            external_provider = request.form.get("external_provider", "").strip()
+            external_reference = request.form.get("external_reference", "").strip()
 
             if (
                 not guest_id
@@ -362,6 +407,10 @@ def register_routes(app):
                     check_in_date=check_in_date,
                     check_out_date=check_out_date,
                     booking_status=booking_status,
+                    source=source,
+                    external_provider=external_provider or None,
+                    external_reference=external_reference or None,
+                    actor_staff_account_id=current_user.id,
                 )
 
                 db.session.commit()
@@ -410,7 +459,9 @@ def register_routes(app):
         booking = Booking.query.get_or_404(booking_id)
 
         try:
-            cancel_booking_service(booking)
+            cancel_booking_service(
+                booking, actor_staff_account_id=current_user.id
+            )
             db.session.commit()
         except BookingServiceError as error:
             db.session.rollback()
@@ -429,6 +480,7 @@ def register_routes(app):
             check_in_booking_service(
                 booking,
                 current_date=date.today(),
+                actor_staff_account_id=current_user.id,
             )
             db.session.commit()
         except BookingServiceError as error:
@@ -451,7 +503,9 @@ def register_routes(app):
             )
             return redirect(url_for("bookings"))
 
-        check_out_booking_service(booking)
+        check_out_booking_service(
+            booking, actor_staff_account_id=current_user.id
+        )
 
         notification_result = send_housekeeping_notification(
             booking.room,

@@ -21,6 +21,7 @@ CANCELLATION_BLOCKED_STATUSES = frozenset(
 )
 CHECK_IN_ALLOWED_STATUSES = frozenset({"Pending", "Confirmed"})
 AVAILABILITY_CONFLICT_SQLSTATES = frozenset({"23P01", "40001", "40P01"})
+EXTERNAL_REFERENCE_CONSTRAINT = "uq_booking_external_reference"
 
 
 class BookingServiceError(Exception):
@@ -30,6 +31,16 @@ class BookingServiceError(Exception):
 def is_availability_conflict(error: DBAPIError) -> bool:
     """Return whether PostgreSQL rejected a concurrent availability write."""
     return getattr(error.orig, "sqlstate", None) in AVAILABILITY_CONFLICT_SQLSTATES
+
+
+def is_external_reference_conflict(error: DBAPIError) -> bool:
+    """Return whether PostgreSQL rejected a duplicate provider reference."""
+    diagnostic = getattr(error.orig, "diag", None)
+    return (
+        getattr(error.orig, "sqlstate", None) == "23505"
+        and getattr(diagnostic, "constraint_name", None)
+        == EXTERNAL_REFERENCE_CONSTRAINT
+    )
 
 
 def _assert_room_available(

@@ -30,6 +30,7 @@ from services.booking_service import (
     check_out_booking as check_out_booking_service,
     create_booking,
     is_availability_conflict,
+    is_external_reference_conflict,
 )
 from services.notification_service import (
     send_housekeeping_notification,
@@ -436,13 +437,19 @@ def register_routes(app):
 
             except DBAPIError as error:
                 db.session.rollback()
-                if not is_availability_conflict(error):
+                if is_availability_conflict(error):
+                    flash(
+                        "Booking rejected: the selected room is no longer available "
+                        "for those dates.",
+                        "danger",
+                    )
+                elif is_external_reference_conflict(error):
+                    flash(
+                        "This external reservation is already recorded.",
+                        "danger",
+                    )
+                else:
                     raise
-                flash(
-                    "Booking rejected: the selected room is no longer available "
-                    "for those dates.",
-                    "danger",
-                )
                 return render_add_booking_form(guests_list, rooms_list)
 
             flash("Booking created successfully.", "success")

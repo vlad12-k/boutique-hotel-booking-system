@@ -16,12 +16,14 @@ The repository now has an explicit production-foundation phase. It provides:
 - PostgreSQL protection against concurrent overlapping active bookings;
 - persistent owner/staff accounts with secure password hashing and audited login;
 - authenticated owner routes, CSRF protection, rate limits and secure headers;
-- provider-neutral booking, payment and integration contracts;
+- separate room types and physical rooms with a configurable seven-room seed;
+- booking source and external-reference persistence;
+- append-only booking history and separate manual payment records;
+- decimal money values with an explicit currency;
 - CI tests against PostgreSQL plus dependency and secret scanning.
 
-The application is not deployed and is not yet ready for real guest data. The
-final seven-room data model, operational audit history, payments,
-calendar/export workflows and external providers remain separate future phases.
+The application is not deployed and is not yet ready for real guest data.
+Calendar/export workflows and external providers remain separate future phases.
 
 The privacy-sanitised academic baseline is preserved in the prerelease tagged
 `academic-baseline-privacy-sanitised-2026-09-16`. Historical academic documents
@@ -88,12 +90,14 @@ Staff can:
 - update room status;
 - filter rooms by status.
 
-Supported room statuses are:
+Persisted operational room states are:
 
 - `Available`;
-- `Occupied`;
 - `Cleaning`;
 - `Maintenance`.
+
+`Occupied` is calculated from a checked-in booking and is never stored as a
+second source of truth on the room record.
 
 ### Guest management
 
@@ -103,6 +107,9 @@ Staff can:
 - view guest contact details;
 - validate guest email format;
 - prevent duplicate guest email records.
+
+Only the guest name is required. Email and phone are optional so Phone and
+Walk-in bookings do not require invented contact details.
 
 Editing existing guest records remains outside the current MVP.
 
@@ -122,6 +129,7 @@ Supported booking statuses are:
 
 - `Pending`;
 - `Confirmed`;
+- `Rejected`;
 - `Checked-in`;
 - `Checked-out`;
 - `Cancelled`.
@@ -179,6 +187,7 @@ boutique-hotel-booking-system/
 │   ├── config.py
 │   ├── domain.py
 │   ├── extensions.py
+│   ├── inventory.py
 │   ├── models.py
 │   ├── routes.py
 │   └── integrations/
@@ -300,6 +309,16 @@ The application no longer creates tables or demo records during startup. The
 original synthetic academic inventory can be added explicitly with
 `flask --app app seed-academic-demo` when needed for local demonstrations.
 
+The production inventory is a separate, fail-closed seed path. Configure all
+three nightly rates and review the configurable labels before running:
+
+```bash
+flask --app app seed-haifa-inventory
+```
+
+This creates physical rooms 1–7 and refuses to run when any room or room type
+already exists. It does not create guests, bookings or other client data.
+
 Start the Flask development server:
 
 ```bash
@@ -342,6 +361,9 @@ The `.env.example` file contains safe placeholders. Real credentials belong only
 | `LOGIN_RATE_LIMIT` | Limits repeated login attempts |
 | `LOGIN_IP_RATE_LIMIT` | Limits aggregate login attempts from one source address |
 | `API_RATE_LIMIT` | Limits requests to protected internal API endpoints |
+| `PROPERTY_CURRENCY` | Sets the currency for newly configured property inventory |
+| `HAIFA_*_ROOM_LABEL` | Configures initial commercial room-type labels |
+| `HAIFA_*_ROOM_RATE` | Required nightly rates for the production inventory seed |
 | `BOOTSTRAP_OWNER_EMAIL` | Optional non-interactive initial-owner email |
 | `BOOTSTRAP_OWNER_NAME` | Optional non-interactive initial-owner display name |
 | `BOOTSTRAP_OWNER_PASSWORD` | Optional non-interactive initial-owner password; unset after use |

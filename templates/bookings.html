@@ -60,7 +60,7 @@
         </td>
         <td>
           <span class="fw-semibold">Room {{ booking.room.room_number }}</span>
-          <div class="small text-muted">{{ booking.room.room_type }}</div>
+          <div class="small text-muted">{{ booking.room.room_type.display_name }}</div>
         </td>
         <td>
           <div>{{ booking.check_in_date }}</div>
@@ -79,7 +79,7 @@
             <span class="badge rounded-pill status-badge bg-secondary-subtle text-secondary-emphasis">{{ booking.status }}</span>
           {% endif %}
         </td>
-        <td class="fw-semibold">£{{ "%.2f"|format(booking.total_price) }}</td>
+        <td class="fw-semibold">{{ booking.currency }} {{ "%.2f"|format(booking.total_price) }}</td>
         <td>
           <div class="d-flex flex-wrap gap-2">
             {% if booking.status not in ['Cancelled', 'Checked-out'] %}

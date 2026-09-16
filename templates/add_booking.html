@@ -24,7 +24,7 @@
         <select name="guest_id" id="guestSelect" class="form-select" required>
           <option value="">Select Guest</option>
           {% for guest in guests %}
-          <option value="{{ guest.id }}">{{ guest.full_name }} ({{ guest.email }})</option>
+          <option value="{{ guest.id }}">{{ guest.full_name }}{% if guest.email %} ({{ guest.email }}){% endif %}</option>
           {% endfor %}
         </select>
         <div class="form-text">Create the guest record first if the guest is not listed.</div>
@@ -36,7 +36,7 @@
           <option value="">Select Room</option>
           {% for room in rooms %}
           <option value="{{ room.id }}">
-            Room {{ room.room_number }} — {{ room.room_type }} (£{{ "%.2f"|format(room.price_per_night) }}) [{{ room.status }}]
+            Room {{ room.room_number }} — {{ room.room_type.display_name }} ({{ room.currency }} {{ "%.2f"|format(room.price_per_night) }}) [{{ room.status }}]
           </option>
           {% endfor %}
         </select>
@@ -55,6 +55,27 @@
       </div>
 
       <div id="bookingDateValidationMessage" class="alert alert-danger d-none mb-3" role="alert"></div>
+
+      <div class="mb-3">
+        <label for="bookingSourceSelect" class="form-label">Booking Source</label>
+        <select name="source" id="bookingSourceSelect" class="form-select">
+          {% for source in booking_sources %}
+          <option value="{{ source }}">{{ source|replace('_', ' ')|title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="externalProvider" class="form-label">External Provider <span class="text-muted">(optional)</span></label>
+          <input id="externalProvider" name="external_provider" class="form-control" maxlength="50">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="externalReference" class="form-label">Reservation Reference <span class="text-muted">(optional)</span></label>
+          <input id="externalReference" name="external_reference" class="form-control" maxlength="120">
+        </div>
+        <div class="form-text mb-3">Provider and reference must be entered together. Do not enter payment card data.</div>
+      </div>
 
       <div class="mb-4">
         <label for="bookingStatusSelect" class="form-label">Initial Booking Status</label>

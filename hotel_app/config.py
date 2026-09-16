@@ -53,9 +53,21 @@ class Config:
         os.getenv("NOTIFICATION_DELIVERY_ENABLED", "0") == "1"
     )
 
+    PROPERTY_CURRENCY = os.getenv("PROPERTY_CURRENCY", "ILS").upper()
+    HAIFA_PRIVATE_ROOM_LABEL = os.getenv("HAIFA_PRIVATE_ROOM_LABEL")
+    HAIFA_TERRACE_ROOM_LABEL = os.getenv("HAIFA_TERRACE_ROOM_LABEL")
+    HAIFA_ECONOMY_ROOM_LABEL = os.getenv("HAIFA_ECONOMY_ROOM_LABEL")
+    HAIFA_PRIVATE_ROOM_RATE = os.getenv("HAIFA_PRIVATE_ROOM_RATE")
+    HAIFA_TERRACE_ROOM_RATE = os.getenv("HAIFA_TERRACE_ROOM_RATE")
+    HAIFA_ECONOMY_ROOM_RATE = os.getenv("HAIFA_ECONOMY_ROOM_RATE")
+
 
 def validate_config(config: Mapping[str, Any]) -> None:
     """Reject unsafe runtime configuration before serving requests."""
+    currency = str(config.get("PROPERTY_CURRENCY", ""))
+    if len(currency) != 3 or not currency.isalpha() or currency != currency.upper():
+        raise RuntimeError("PROPERTY_CURRENCY must be an uppercase three-letter code.")
+
     if config.get("TESTING"):
         return
 

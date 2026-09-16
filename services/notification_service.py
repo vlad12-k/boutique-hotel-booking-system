@@ -42,7 +42,12 @@ def build_room_ready_message(room) -> str:
     )
 
 
-def send_housekeeping_notification(room, booking=None) -> dict:
+def send_housekeeping_notification(
+    room,
+    booking=None,
+    *,
+    delivery_enabled: bool = True,
+) -> dict:
     """
     Sends a housekeeping notification using a primary API and backup API.
 
@@ -50,6 +55,15 @@ def send_housekeeping_notification(room, booking=None) -> dict:
     Backup channel: Email.
     """
     message = build_housekeeping_message(room, booking)
+
+    if not delivery_enabled:
+        return {
+            "success": False,
+            "channel": "disabled",
+            "message": message,
+            "error": "Prototype notification delivery is disabled.",
+            "details": None,
+        }
 
     try:
         telegram_result = send_telegram_message(message)
@@ -87,7 +101,7 @@ def send_housekeeping_notification(room, booking=None) -> dict:
             }
 
 
-def send_room_ready_notification(room) -> dict:
+def send_room_ready_notification(room, *, delivery_enabled: bool = True) -> dict:
     """
     Sends a notification when a cleaned room is made available again.
 
@@ -96,6 +110,15 @@ def send_room_ready_notification(room) -> dict:
     """
     message = build_room_ready_message(room)
     room_number = getattr(room, "room_number", "Unknown")
+
+    if not delivery_enabled:
+        return {
+            "success": False,
+            "channel": "disabled",
+            "message": message,
+            "error": "Prototype notification delivery is disabled.",
+            "details": None,
+        }
 
     try:
         telegram_result = send_telegram_message(message)

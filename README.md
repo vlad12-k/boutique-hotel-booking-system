@@ -1,8 +1,31 @@
-# Boutique Hotel Booking and Room Management System
+# Haifa Guest House Operations App
 
-A staff-facing Flask web application for managing guests, rooms, bookings, room readiness, check-ins and check-outs in a small boutique hotel.
+A mobile-first, owner-focused Flask operations application being developed for
+Haifa Guest House in Israel. The current foundation preserves the verified
+academic booking workflows while establishing the structure and database safety
+needed for a real seven-room property.
 
-The project contains:
+## Transformation status
+
+The repository now has an explicit production-foundation phase. It provides:
+
+- a maintainable Flask package and side-effect-free application factory;
+- environment-based configuration that fails closed in production;
+- PostgreSQL as the required production database;
+- Alembic migrations instead of startup-time schema creation;
+- PostgreSQL protection against concurrent overlapping active bookings;
+- provider-neutral booking, payment and integration contracts;
+- CI tests against PostgreSQL plus dependency and secret scanning.
+
+The application is not deployed and is not yet ready for real guest data.
+Authentication, the final seven-room data model, audit events, payments,
+calendar/export workflows and external providers remain separate future phases.
+
+The privacy-sanitised academic baseline is preserved in the prerelease tagged
+`academic-baseline-privacy-sanitised-2026-09-16`. Historical academic documents
+remain in the repository and are clearly distinct from current product status.
+
+The preserved project history contains:
 
 - the core hotel-management application developed for **Unit 36: Application Development**;
 - a later housekeeping-notification extension developed for **Unit 37: Application Program Interfaces**.
@@ -32,7 +55,10 @@ The core application provides an internal system for managing:
 - room and booking filtering;
 - dashboard summaries.
 
-The later notification extension adds Telegram housekeeping alerts, SMTP email fallback, a Telegram staff command worker and notification audit records.
+The later academic notification extension demonstrates Telegram housekeeping
+alerts, SMTP email fallback, a Telegram staff command worker and notification
+audit records. These integrations are not configured or claimed as production
+integrations.
 
 ---
 
@@ -119,13 +145,14 @@ Critical rules are enforced on the server. Vanilla JavaScript provides additiona
 |---|---|
 | Backend | Python and Flask |
 | ORM | Flask-SQLAlchemy |
-| Database | SQLite |
+| Database | PostgreSQL in production; SQLite for lightweight local tests |
+| Migrations | Alembic through Flask-Migrate |
 | Templates | Jinja2 |
 | Interface | Bootstrap and custom CSS |
 | Frontend interaction | Vanilla JavaScript |
 | Automated testing | pytest |
-| Messaging integration | Telegram Bot API |
-| Email fallback | SMTP using Mailtrap Sandbox |
+| Prototype messaging | Telegram Bot API, disabled unless explicitly configured |
+| Prototype email fallback | SMTP using Mailtrap Sandbox |
 | Configuration | Environment variables through `.env` |
 | Version control | Git and GitHub |
 | Documentation | Markdown and Mermaid |
@@ -142,8 +169,18 @@ boutique-hotel-booking-system/
 ├── models.py
 ├── telegram_bot_worker.py
 ├── requirements.txt
+├── requirements-dev.txt
 ├── README.md
 ├── LICENSE
+├── hotel_app/
+│   ├── __init__.py
+│   ├── config.py
+│   ├── domain.py
+│   ├── extensions.py
+│   ├── models.py
+│   ├── routes.py
+│   └── integrations/
+├── migrations/
 ├── services/
 │   ├── __init__.py
 │   ├── booking_service.py
@@ -235,17 +272,29 @@ venv\Scripts\Activate.ps1
 ### 4. Install dependencies
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 ---
 
 ## Running the Core Application
 
-Start the Flask application:
+Copy the safe configuration template, replace the local secret, and apply the
+versioned schema:
 
 ```bash
-python app.py
+cp .env.example .env
+flask --app app db upgrade
+```
+
+The application no longer creates tables or demo records during startup. The
+original synthetic academic inventory can be added explicitly with
+`flask --app app seed-academic-demo` when needed for local demonstrations.
+
+Start the Flask development server:
+
+```bash
+flask --app app run
 ```
 
 Open:
@@ -311,13 +360,14 @@ The suite covers:
 - Telegram staff command parsing and authorisation;
 - notification security behaviour.
 
-The latest previously recorded result was:
+The privacy-sanitised baseline result was:
 
 ```text
 34 passed
 ```
 
-The suite must be run again after all final code and documentation changes. The final result should be retained as submission evidence and updated if the collected test count changes.
+Foundation work adds configuration, migration, domain and PostgreSQL concurrency
+tests. CI runs the complete suite with a disposable PostgreSQL 16 service.
 
 Manual test planning and results are recorded separately:
 
@@ -365,10 +415,12 @@ Detailed behaviour is documented in:
 
 ## Telegram Staff Command Worker
 
-Run the Flask application in one terminal:
+The Telegram worker is retained as academic prototype code and must not be
+configured with a real account during the foundation phase. For an isolated
+synthetic demonstration, run the Flask application in one terminal:
 
 ```bash
-python app.py
+flask --app app run
 ```
 
 Run the Telegram worker in a second terminal:
@@ -451,7 +503,7 @@ Requests without a valid key should be rejected.
 
 ---
 
-## Current Limitations
+## Current limitations
 
 The project is an academic prototype rather than a production hotel-management platform.
 
@@ -465,8 +517,11 @@ Current limitations include:
 - no customer booking confirmations;
 - no production cloud deployment;
 - no automated backup process;
-- SQLite rather than a production server database;
+- no migrated production dataset;
 - no advanced occupancy or revenue analytics.
+
+See `docs/architecture/production-foundation.md` for the current boundaries and
+`docs/operations/database-migrations.md` for the migration workflow.
 
 ---
 

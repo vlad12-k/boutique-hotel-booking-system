@@ -1,6 +1,8 @@
 from datetime import date
 
-from models import (
+from sqlalchemy.exc import DBAPIError
+
+from hotel_app.models import (
     ACTIVE_BOOKING_STATUSES,
     Booking,
     Guest,
@@ -12,10 +14,16 @@ from models import (
 NEW_BOOKING_STATUSES = frozenset({"Pending", "Confirmed"})
 CANCELLATION_BLOCKED_STATUSES = frozenset({"Checked-out", "Cancelled"})
 CHECK_IN_ALLOWED_STATUSES = frozenset({"Pending", "Confirmed"})
+AVAILABILITY_CONFLICT_SQLSTATES = frozenset({"23P01", "40001", "40P01"})
 
 
 class BookingServiceError(Exception):
     """Raised when a booking operation violates a business rule."""
+
+
+def is_availability_conflict(error: DBAPIError) -> bool:
+    """Return whether PostgreSQL rejected a concurrent availability write."""
+    return getattr(error.orig, "sqlstate", None) in AVAILABILITY_CONFLICT_SQLSTATES
 
 
 def create_booking(

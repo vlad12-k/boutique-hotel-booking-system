@@ -1,0 +1,5 @@
+Single-database migration configuration for the Haifa Guest House Operations App.
+
+Apply migrations with:
+
+    flask --app app db upgrade

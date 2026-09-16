@@ -24,6 +24,7 @@ from pathlib import Path
 import re
 
 files = [Path("app.py"), Path("telegram_bot_worker.py")]
+files.extend(Path("hotel_app").rglob("*.py"))
 files.extend(Path("services").glob("*.py"))
 
 patterns = [

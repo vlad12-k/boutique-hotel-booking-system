@@ -219,13 +219,11 @@ Implementation files:
 
 Screenshot evidence:
 
-- `screenshots/01-dashboard.png`
-- `screenshots/02-rooms-page.png`
-- `screenshots/04-room-filter.png`
-- `screenshots/05-guests-page.png`
-- `screenshots/09-add-booking-form.png`
-- `screenshots/13-bookings-page.png`
-- `screenshots/14-booking-filter.png`
+- `screenshots/02-rooms-management.png`
+- `screenshots/03-room-filter.png`
+- `screenshots/05-booking-creation.png`
+- Historical dashboard, guest and booking record screenshots were removed during
+  privacy sanitisation because they contained identifiable records.
 
 ### Outcome
 
@@ -443,13 +441,11 @@ Prepare the application for final academic submission and portfolio demonstratio
 
 ### Evidence
 
-- `screenshots/01-dashboard.png`
-- `screenshots/02-rooms-page.png`
-- `screenshots/04-room-filter.png`
-- `screenshots/05-guests-page.png`
-- `screenshots/09-add-booking-form.png`
-- `screenshots/13-bookings-page.png`
-- `screenshots/14-booking-filter.png`
+- `screenshots/02-rooms-management.png`
+- `screenshots/03-room-filter.png`
+- `screenshots/05-booking-creation.png`
+- Historical dashboard, guest and booking record screenshots were removed during
+  privacy sanitisation because they contained identifiable records.
 
 ### Outcome
 

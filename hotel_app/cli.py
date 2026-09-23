@@ -1,25 +1,31 @@
 import os
+from decimal import Decimal
 
 import click
 from flask import Flask
 from sqlalchemy.exc import IntegrityError
 
 from hotel_app.extensions import db
-from hotel_app.models import Room, SecurityAuditEvent, StaffAccount
+from hotel_app.inventory import (
+    HAIFA_ROOMS,
+    HAIFA_ROOM_TYPES,
+    configured_room_type_values,
+)
+from hotel_app.models import Room, RoomType, SecurityAuditEvent, StaffAccount
 from hotel_app.security import is_valid_email, normalise_email, validate_new_password
 
 
 ACADEMIC_DEMO_ROOMS = (
-    ("101", "Single", 70.0),
-    ("102", "Single", 70.0),
-    ("103", "Double", 95.0),
-    ("104", "Double", 95.0),
-    ("105", "Twin", 90.0),
-    ("106", "Twin", 90.0),
-    ("107", "Deluxe", 130.0),
-    ("108", "Deluxe", 130.0),
-    ("109", "Suite", 180.0),
-    ("110", "Suite", 180.0),
+    ("101", "Single", Decimal("70.00")),
+    ("102", "Single", Decimal("70.00")),
+    ("103", "Double", Decimal("95.00")),
+    ("104", "Double", Decimal("95.00")),
+    ("105", "Twin", Decimal("90.00")),
+    ("106", "Twin", Decimal("90.00")),
+    ("107", "Deluxe", Decimal("130.00")),
+    ("108", "Deluxe", Decimal("130.00")),
+    ("109", "Suite", Decimal("180.00")),
+    ("110", "Suite", Decimal("180.00")),
 )
 
 
@@ -91,14 +97,62 @@ def register_cli(app: Flask) -> None:
         if Room.query.count() > 0:
             raise click.ClickException("Room inventory is not empty; seed aborted.")
 
-        db.session.add_all(
-            Room(
-                room_number=number,
-                room_type=room_type,
-                price_per_night=price,
-                status="Available",
+        room_types = {}
+        for label in {item[1] for item in ACADEMIC_DEMO_ROOMS}:
+            room_type = RoomType(
+                code=f"academic-{label.lower()}",
+                display_name=label,
+                bathroom_type="unspecified",
             )
-            for number, room_type, price in ACADEMIC_DEMO_ROOMS
-        )
+            db.session.add(room_type)
+            room_types[label] = room_type
+
+        for number, label, price in ACADEMIC_DEMO_ROOMS:
+            db.session.add(
+                Room(
+                    room_number=number,
+                    room_type=room_types[label],
+                    price_per_night=price,
+                    currency="GBP",
+                    operational_state="ready",
+                )
+            )
         db.session.commit()
         click.echo("Academic demo rooms created.")
+
+    @app.cli.command("seed-haifa-inventory")
+    def seed_haifa_inventory() -> None:
+        """Create the configurable seven-room production inventory."""
+        if Room.query.count() > 0 or RoomType.query.count() > 0:
+            raise click.ClickException("Room inventory is not empty; seed aborted.")
+
+        room_types = {}
+        try:
+            for contract in HAIFA_ROOM_TYPES:
+                label, rate = configured_room_type_values(app.config, contract)
+                room_type = RoomType(
+                    code=contract.code,
+                    display_name=label,
+                    bathroom_type=contract.bathroom_type,
+                    has_balcony_or_terrace=contract.has_balcony_or_terrace,
+                )
+                db.session.add(room_type)
+                room_types[contract.code] = (room_type, rate)
+        except ValueError as error:
+            db.session.rollback()
+            raise click.ClickException(str(error)) from error
+
+        for contract in HAIFA_ROOMS:
+            room_type, rate = room_types[contract.room_type_code]
+            db.session.add(
+                Room(
+                    room_number=contract.number,
+                    room_type=room_type,
+                    price_per_night=rate.amount,
+                    currency=rate.currency,
+                    operational_state="ready",
+                )
+            )
+
+        db.session.commit()
+        click.echo("Haifa Guest House seven-room inventory created.")

@@ -32,19 +32,18 @@
 
       <div class="mb-3">
         <label for="roomType" class="form-label">Room Type</label>
-        <input
-          id="roomType"
-          name="room_type"
-          class="form-control"
-          placeholder="Example: Deluxe Double"
-          required
-        >
+        <select id="roomType" name="room_type_id" class="form-select" required>
+          <option value="">Select Room Type</option>
+          {% for room_type in room_types %}
+          <option value="{{ room_type.id }}">{{ room_type.display_name }}</option>
+          {% endfor %}
+        </select>
       </div>
 
       <div class="mb-3">
         <label for="pricePerNight" class="form-label">Price Per Night</label>
         <div class="input-group">
-          <span class="input-group-text">£</span>
+          <span class="input-group-text">{{ currency }}</span>
           <input
             id="pricePerNight"
             name="price_per_night"
@@ -82,7 +81,7 @@
       <h2 class="h5 mb-3">Room status meaning</h2>
       <ul class="support-list mb-0">
         <li><strong>Available:</strong> ready for a guest booking.</li>
-        <li><strong>Occupied:</strong> currently used by a checked-in guest.</li>
+        <li><strong>Occupied:</strong> derived automatically from a checked-in booking.</li>
         <li><strong>Cleaning:</strong> requires housekeeping before reuse.</li>
         <li><strong>Maintenance:</strong> unavailable for new bookings.</li>
       </ul>

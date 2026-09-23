@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import pytest
 from flask import Flask
 
-from models import Booking, Guest, Room, db
+from models import Booking, Guest, Room, RoomType, db
 from services.booking_service import (
     BookingServiceError,
     cancel_booking,
@@ -12,6 +12,7 @@ from services.booking_service import (
     check_out_booking,
     create_booking,
     is_availability_conflict,
+    is_external_reference_conflict,
 )
 
 
@@ -28,6 +29,26 @@ from services.booking_service import (
 def test_availability_conflict_identifies_postgresql_outcomes(sqlstate, expected):
     error = SimpleNamespace(orig=SimpleNamespace(sqlstate=sqlstate))
     assert is_availability_conflict(error) is expected
+
+
+@pytest.mark.parametrize(
+    ("sqlstate", "constraint_name", "expected"),
+    [
+        ("23505", "uq_booking_external_reference", True),
+        ("23505", "another_unique_constraint", False),
+        ("23P01", "uq_booking_external_reference", False),
+    ],
+)
+def test_external_reference_conflict_identifies_only_its_constraint(
+    sqlstate, constraint_name, expected
+):
+    error = SimpleNamespace(
+        orig=SimpleNamespace(
+            sqlstate=sqlstate,
+            diag=SimpleNamespace(constraint_name=constraint_name),
+        )
+    )
+    assert is_external_reference_conflict(error) is expected
 
 
 @pytest.fixture()
@@ -62,14 +83,19 @@ def guest_and_room(test_app):
             notes="Test fixture guest",
         )
 
+        room_type = RoomType(
+            code="test-double",
+            display_name="Double",
+            bathroom_type="private",
+        )
         room = Room(
             room_number="201",
-            room_type="Double",
+            room_type=room_type,
             price_per_night=100.0,
             status="Available",
         )
 
-        db.session.add_all([guest, room])
+        db.session.add_all([guest, room_type, room])
         db.session.commit()
 
         return guest.id, room.id
@@ -417,9 +443,6 @@ def test_check_out_booking_updates_booking_and_room_status(
     guest_id, room_id = guest_and_room
 
     with test_app.app_context():
-        room = db.session.get(Room, room_id)
-        room.status = "Occupied"
-
         booking = Booking(
             guest_id=guest_id,
             room_id=room_id,
@@ -431,6 +454,7 @@ def test_check_out_booking_updates_booking_and_room_status(
 
         db.session.add(booking)
         db.session.commit()
+        assert booking.room.status == "Occupied"
 
         check_out_booking(booking)
         db.session.commit()

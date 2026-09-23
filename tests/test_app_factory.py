@@ -45,6 +45,17 @@ def test_database_url_normalisation(source, expected):
     assert normalise_database_url(source) == expected
 
 
+def test_factory_rejects_invalid_property_currency():
+    with pytest.raises(RuntimeError, match="PROPERTY_CURRENCY"):
+        create_app(
+            {
+                "TESTING": True,
+                "SECRET_KEY": "synthetic-test-secret",
+                "PROPERTY_CURRENCY": "invalid",
+            }
+        )
+
+
 def test_production_rejects_sqlite():
     with pytest.raises(RuntimeError, match="Production requires PostgreSQL"):
         create_app(

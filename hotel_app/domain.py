@@ -22,11 +22,11 @@ class BookingLifecycle(StrEnum):
 
 
 class PaymentStatus(StrEnum):
-    PENDING = "pending"
-    PARTIALLY_PAID = "partially_paid"
-    PAID = "paid"
+    UNPAID = "unpaid"
+    DEPOSIT_DUE = "deposit_due"
+    DEPOSIT_PAID = "deposit_paid"
+    PAID_IN_FULL = "paid_in_full"
     REFUNDED = "refunded"
-    VOID = "void"
 
 
 class RoomOperationalState(StrEnum):

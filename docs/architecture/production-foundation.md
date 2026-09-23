@@ -51,18 +51,19 @@ states, room operational states, half-open stay periods, decimal money values
 and external reservation references. A reservation adapter protocol defines the
 boundary for future imports and providers.
 
-These contracts are intentionally not yet persisted. Room types, booking audit
-events and payments require reviewed additive migrations in later phases. Phase
-2 adds persistent staff accounts and security events without expanding the
-booking domain. No SMS, Booking.com, Telegram, WhatsApp, email or payment
-provider is implemented by this foundation.
+Phase 2 persisted staff accounts and security events. Phase 3 persists room
+types, booking audit events, payments, sources, external references and decimal
+money through an additive migration. See
+`docs/architecture/operational-domain-model.md`. No SMS, Booking.com, Telegram,
+WhatsApp, email or payment provider is implemented.
 
 ## Inventory boundary
 
 The original synthetic ten-room dataset remains available only through the
 explicit `seed-academic-demo` command. It is never inserted automatically. The
-real seven-room Haifa Guest House inventory is deferred until its commercial
-room-type wording and starting operational data are approved.
+real seven-room layout now has a separate configurable seed. Commercial labels
+and all rates remain runtime configuration and the seed refuses to run until
+rates are supplied.
 
 ## Verification
 
@@ -74,7 +75,6 @@ and repository secret patterns.
 ## Deferred work
 
 - Staff account administration and fine-grained role authorisation.
-- Persistent `RoomType`, `Payment` and append-only booking-event models.
 - The seven-room calendar, Today workflow, quick entry and database exports.
 - Retention/anonymisation workflows and restore drills.
 - Render Blueprint, paid resources, deployment and custom domain configuration.

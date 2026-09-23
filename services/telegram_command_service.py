@@ -71,14 +71,20 @@ def build_room_status_summary() -> str:
 
 def build_room_list_by_status(status: str, title: str) -> str:
     """Lists rooms matching a specific status."""
-    rooms = Room.query.filter_by(status=status).order_by(Room.room_number.asc()).all()
+    rooms = [
+        room
+        for room in Room.query.order_by(Room.room_number.asc()).all()
+        if room.status == status
+    ]
 
     if not rooms:
         return f"{title}\nNo rooms found."
 
     lines = [title]
     for room in rooms:
-        lines.append(f"Room {room.room_number} - {room.room_type} - {room.status}")
+        lines.append(
+            f"Room {room.room_number} - {room.room_type.display_name} - {room.status}"
+        )
 
     return "\n".join(lines)
 
